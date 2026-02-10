@@ -1,9 +1,11 @@
+from config_VA import config_VA
+
 def L3_Jup_Map_Plot_Tiktin(obskey="20251016UTa",imagetype='Map',target="Jupiter",
                         LatLims=[45,135],LonRng=45,
                         CMpref='subobs',LonSys='2',showbands=False,
                         coef=[0.,0.],subproj='',figxy=[8.0,4.0],FiveMicron=False,
                         ROI=False,ctbls=["terrain_r","Blues"],
-                        LimbCorrection=False,pathin="C:/Astronomy/Projects/SAS 2021 Ammonia/Data-Management-and-Access/Test_Data/"):
+                        LimbCorrection=False,dataversion=2):
     """
     Created on Sun Nov  6 16:47:21 2022
     
@@ -42,7 +44,7 @@ def L3_Jup_Map_Plot_Tiktin(obskey="20251016UTa",imagetype='Map',target="Jupiter"
     import numpy as np
     from astropy.io import fits
     sys.path.append('./Maps')
-    import read_fits_map_L2_L3 as RFM
+    #import read_fits_map_L2_L3 as RFM
     import make_patch as MP
     import map_and_context as mac
     import map_and_scatter as mas
@@ -62,24 +64,28 @@ def L3_Jup_Map_Plot_Tiktin(obskey="20251016UTa",imagetype='Map',target="Jupiter"
     micronhigh=3.5
 
     if (not FiveMicron) or FiveMicron=="png":
-        PCldhdr,PClddata,PCldCM,fNH3hdr,fNH3data,fNH3CM,RGB,RGB_CM,RGBtime= \
-                        RFT.read_fits_map_Tiktin(obskey=obskey,imagetype="Map",
-                                                target=target,Level="L3",
-                                                LonSys=LonSys,FiveMicron=FiveMicron,
-                                                LimbCorrection=LimbCorrection,
-                                                pathin=pathin)
-                        
-        #PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime= \
-        #                RFM.read_fits_map_L2_L3(obskey=obskey,LonSys=LonSys,
-        #                                        imagetype="Map",Level="L3",
-        #                                        target=target,FiveMicron=FiveMicron)
-                        
+        if dataversion==2:
+            PCldhdr,PClddata,PCldCM,fNH3hdr,fNH3data,fNH3CM,RGB,RGB_CM,RGBtime= \
+                            RFT.read_fits_map_L3_V2(obskey=obskey,imagetype="Map",
+                                                    target=target,Level="L3",
+                                                    LonSys=LonSys,
+                                                    LimbCorrection=LimbCorrection,
+                                                    pathin=config_VA[dataversion])
+        elif dataversion==1:
+            PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime= \
+                            RFT.read_fits_map_L3_V1(obskey=obskey,LonSys=LonSys,
+                                                    imagetype="Map",Level="L3",
+                                                    target=target,
+                                                    LimbCorrection=LimbCorrection,
+                                                    pathin=config_VA[dataversion])
+            fNH3CM=fNH3hdr['CM'+LonSys]
+            PCldCM=PCldhdr['CM'+LonSys]
         
-    elif FiveMicron=="fits":
-        PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime,micronhdr,microndatar= \
-                        RFM.read_fits_map_L2_L3(obskey=obskey,LonSys=LonSys,
-                                                imagetype="Map",Level="L3",
-                                                target=target,FiveMicron=FiveMicron)
+    #elif FiveMicron=="fits":
+    #    PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime,micronhdr,microndatar= \
+    #                    RFM.read_fits_map_L2_L3(obskey=obskey,LonSys=LonSys,
+    #                                            imagetype="Map",Level="L3",
+    #                                            target=target,FiveMicron=FiveMicron)
                     
     pathmapplots='C:/Astronomy/Projects/SAS 2021 Ammonia/Data/L3 Plots/'+subproj+'/'
     if not os.path.exists(pathmapplots):
@@ -112,8 +118,8 @@ def L3_Jup_Map_Plot_Tiktin(obskey="20251016UTa",imagetype='Map',target="Jupiter"
     if CMpref=='subobs':
         fNH3PlotCM=fNH3CM
         PCldPlotCM=PCldCM
-        if FiveMicron:
-            micronPlotCM=micronhdr["CM"+LonSys]
+        #if FiveMicron:
+        #    micronPlotCM=micronhdr["CM"+LonSys]
     else:
         fNH3PlotCM=CMpref
         PCldPlotCM=CMpref
