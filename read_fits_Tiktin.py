@@ -22,10 +22,10 @@ def read_fits_L3_V2_helper(pathandfile,target="Jupiter",LonSys='3',
 
     CM3ck=float(dataobj['hdr']["HIERARCH PLANMAP SUBPOINT LON"])
     eph=sp_ephem.get_spice_ephem(dataobj['hdr']["DATE-OBS"],planet='target')
-    dataobj['CM1']=float(eph[0].strip())
-    dataobj['CM2']=float(eph[1].strip())
-    dataobj['CM3']=float(eph[2].strip())
-    if np.abs(CM3ck-dataobj['CM3'])>0.01:
+    dataobj['hdr']['CM1']=float(eph[0].strip())
+    dataobj['hdr']['CM2']=float(eph[1].strip())
+    dataobj['hdr']['CM3']=float(eph[2].strip())
+    if np.abs(CM3ck-dataobj['hdr']['CM3'])>0.01:
         print("CM ERROR")
         
     if LimbCorrection and 'BUNIT' in dataobj['hdr']:
@@ -33,7 +33,7 @@ def read_fits_L3_V2_helper(pathandfile,target="Jupiter",LonSys='3',
         amfdata=(1.0/(np.cos(dataobj['sza']*np.pi/180))+1.0/np.cos(dataobj['eza']*np.pi/180.))/2.0
         dataobj['data']=dataobj['data']*(amfdata**exponent[dataobj['hdr']['BUNIT']])
         
-    dataobj['datar']=deepcopy(np.roll(dataobj['data'],int(dataobj['CM3']-dataobj['CM'+LonSys]),axis=1))
+    dataobj['datar']=deepcopy(np.roll(dataobj['data'],int(dataobj['hdr']['CM3']-dataobj['hdr']['CM'+LonSys]),axis=1))
     """
     fig1,axs1=pl.subplots(1,figsize=(3,6), dpi=150, facecolor="white")
     fig2,axs2=pl.subplots(1,figsize=(3,6), dpi=150, facecolor="white")
@@ -83,9 +83,9 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
     IGBdatar=np.dstack((RGBobjects['NIR']['datar'],RGBobjects['GRN']['datar'],RGBobjects['BLU']['datar']))
     IGBdatarx=np.nan_to_num(IGBdatar, nan=0.0, posinf=1.0, neginf=0.0)
 
-    return(sciobjects['PCld']['hdr'],sciobjects['PCld']['datar'],sciobjects['PCld']['CM'+LonSys],
-           sciobjects['fNH3']['hdr'],sciobjects['fNH3']['datar'],sciobjects['fNH3']['CM'+LonSys],
-           IGBdatarx/np.max(IGBdatarx),RGBobjects['GRN']['CM'+LonSys],RGBobjects['GRN']['hdr']['DATE-OBS'])
+    return(sciobjects['PCld']['hdr'],sciobjects['PCld']['datar'],
+           sciobjects['fNH3']['hdr'],sciobjects['fNH3']['datar'],
+           IGBdatarx/np.max(IGBdatarx),RGBobjects['GRN']['hdr']['CM'+LonSys],RGBobjects['GRN']['hdr']['DATE-OBS'])
 
 def read_fits_map_L3_V1(obskey="20231026UTa",imagetype="Map",Level="L3",
                         target="Jupiter",LonSys='3',

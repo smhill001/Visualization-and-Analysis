@@ -1,6 +1,6 @@
 from config_VA import config_VA
 
-def L3_Jup_Map_Plot_Tiktin(obskey="20251016UTa",imagetype='Map',target="Jupiter",
+def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
                         LatLims=[45,135],LonRng=45,
                         CMpref='subobs',LonSys='2',showbands=False,
                         coef=[0.,0.],subproj='',figxy=[8.0,4.0],FiveMicron=False,
@@ -65,7 +65,7 @@ def L3_Jup_Map_Plot_Tiktin(obskey="20251016UTa",imagetype='Map',target="Jupiter"
 
     if (not FiveMicron) or FiveMicron=="png":
         if dataversion==2:
-            PCldhdr,PClddata,PCldCM,fNH3hdr,fNH3data,fNH3CM,RGB,RGB_CM,RGBtime= \
+            PCldhdr,PClddata,fNH3hdr,fNH3data,RGB,RGB_CM,RGBtime= \
                             RFT.read_fits_map_L3_V2(obskey=obskey,imagetype="Map",
                                                     target=target,Level="L3",
                                                     LonSys=LonSys,
@@ -78,8 +78,8 @@ def L3_Jup_Map_Plot_Tiktin(obskey="20251016UTa",imagetype='Map',target="Jupiter"
                                                     target=target,
                                                     LimbCorrection=LimbCorrection,
                                                     pathin=config_VA[dataversion])
-            fNH3CM=fNH3hdr['CM'+LonSys]
-            PCldCM=PCldhdr['CM'+LonSys]
+        fNH3CM=fNH3hdr['CM'+LonSys]
+        PCldCM=PCldhdr['CM'+LonSys]
         
     #elif FiveMicron=="fits":
     #    PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime,micronhdr,microndatar= \

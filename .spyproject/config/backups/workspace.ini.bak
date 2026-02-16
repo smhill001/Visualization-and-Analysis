@@ -1,0 +1,12 @@
+[workspace]
+restore_data_on_startup = True
+save_data_on_exit = True
+save_history = True
+save_non_project_files = False
+project_type = 'empty-project-type'
+recent_files = ['L3_Jup_Map_Plot_V2.py', 'L4_Jup_Map_Plot_V2.py', '..\\Jupiter_NH3_Analysis_P3\\Services\\make_L4_cont_maps.py', 'config_VA.py', 'read_fits_Tiktin.py', '..\\Jupiter_NH3_Analysis_P3\\Profiles\\code\\plot_profile_scatter.py']
+
+[main]
+version = 0.2.0
+recent_files = []
+
