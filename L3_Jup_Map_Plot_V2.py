@@ -40,7 +40,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     sys.path.append('C:/Astronomy/Projects/SAS 2021 Ammonia/Data-Management-and-Access/Tests')
 
     import os
-    import read_fits_Tiktin as RFT
+    import read_fits_V2 as RF2
     import numpy as np
     from astropy.io import fits
     sys.path.append('./Maps')
@@ -66,14 +66,14 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     if (not FiveMicron) or FiveMicron=="png":
         if dataversion==2:
             PCldhdr,PClddata,fNH3hdr,fNH3data,RGB,RGB_CM,RGBtime= \
-                            RFT.read_fits_map_L3_V2(obskey=obskey,imagetype="Map",
+                            RF2.read_fits_map_L3_V2(obskey=obskey,imagetype="Map",
                                                     target=target,Level="L3",
                                                     LonSys=LonSys,
                                                     LimbCorrection=LimbCorrection,
                                                     pathin=config_VA[dataversion])
         elif dataversion==1:
             PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime= \
-                            RFT.read_fits_map_L3_V1(obskey=obskey,LonSys=LonSys,
+                            RF2.read_fits_map_L3_V1(obskey=obskey,LonSys=LonSys,
                                                     imagetype="Map",Level="L3",
                                                     target=target,
                                                     LimbCorrection=LimbCorrection,
