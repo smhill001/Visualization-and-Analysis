@@ -1,17 +1,25 @@
 def ApplyContours(axs1,RGBaxs,fNH3_patch_mb,tx_fNH3,PCld_patch_mb,tx_PCld,
                   lats,LonLims,IRTFcollection=False,IRTFaxs='',
-                  CH4889collection=False,CH4889plot=False,CH4889axs=''):
+                  CH4889collection=False,CH4889plot=False,CH4889axs='',
+                  HST=False):
     
     import plot_contours_on_patch as PC
     print("tx_fNH3",tx_fNH3)
-    temp=PC.plot_contours_on_patch(axs1[0],fNH3_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+    
+    ##!!! Something weird about conventions used for LonLims for HST and SCT!!!
+    ##!!! Should make this consistent
+    if HST:
+        Lons=[LonLims[0],LonLims[1]]
+    else:
+        Lons=[360-LonLims[1],360-LonLims[0]]
+    temp=PC.plot_contours_on_patch(axs1[0],fNH3_patch_mb,lats,Lons,
                                     tx_fNH3, frmt='%3.0f', clr='k')
-    temp=PC.plot_contours_on_patch(axs1[1],PCld_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+    temp=PC.plot_contours_on_patch(axs1[1],PCld_patch_mb,lats,Lons,
                                     tx_PCld, frmt='%3.0f', clr='r')
-    temp=PC.plot_contours_on_patch(axs1[RGBaxs],fNH3_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
-                                    tx_fNH3[-2:], frmt='%3.0f', clr='k')
-    temp=PC.plot_contours_on_patch(axs1[RGBaxs],PCld_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
-                                    tx_PCld[:5], frmt='%3.0f', clr='r')
+    temp=PC.plot_contours_on_patch(axs1[RGBaxs],fNH3_patch_mb,lats,Lons,
+                                    tx_fNH3, frmt='%3.0f', clr='k')
+    temp=PC.plot_contours_on_patch(axs1[RGBaxs],PCld_patch_mb,lats,Lons,
+                                    tx_PCld, frmt='%3.0f', clr='r')
     if IRTFcollection:
         temp=PC.plot_contours_on_patch(axs1[IRTFaxs],fNH3_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
                                         tx_fNH3[-2:], frmt='%3.0f', clr='k')
@@ -24,8 +32,8 @@ def ApplyContours(axs1,RGBaxs,fNH3_patch_mb,tx_fNH3,PCld_patch_mb,tx_PCld,
         temp=PC.plot_contours_on_patch(axs1[CH4889axs],PCld_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
                                         tx_PCld[:5], frmt='%3.0f', clr='r')
 
-
-def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path):
+def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
+                   LonSys,HST=False):
 
     import sys
     sys.path.append('C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Winds/')
@@ -38,67 +46,40 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path):
                           sharex=True)
     figlc.suptitle(collection)
 
-    lon_array=np.arange(LonLims[1],LonLims[0],-1)
-    fNH3_array0=np.mean(fNH3_patch_mb[4:7,:],axis=0)
-    Cld_array0=np.mean(PCld_patch_mb[4:7,:],axis=0)
-    fNH3_array1=np.mean(fNH3_patch_mb[5:9,:],axis=0)
-    Cld_array1=np.mean(PCld_patch_mb[5:9,:],axis=0)
-    fNH3_array2=np.mean(fNH3_patch_mb[9:12,:],axis=0)
-    Cld_array2=np.mean(PCld_patch_mb[9:12,:],axis=0)
-    #PCld_array=np.mean(PCld_patch_mb[7:9,:],axis=0)
-    #NEDF_array=np.mean(PCld_patch_mb[5:7,:],axis=0)
-
-    shift_px0, peak0, snr0 = _xcorr1d_circular(1.0/(Cld_array0/np.mean(Cld_array0)),
-                                            fNH3_array0/np.mean(fNH3_array0))
-    print("00000 shift_px, peak, snr=",shift_px0, peak0, snr0)
-    axslc[0].plot(lon_array,fNH3_array0,color='C2',label='fNH3')
-    #axslc[0].plot(lon_array,np.roll(fNH3_array0,10),color='C2',linestyle='dashed',linewidth=0.5)
-    axslc[0].plot(lon_array,np.roll(fNH3_array0,-int(shift_px0)),color='C0',
-                  alpha=0.3,label='fNH3 shifted '+str(-int(shift_px0))+' deg')
-    axslc0=axslc[0].twinx()
-    axslc0.plot(lon_array,Cld_array0,color='C0',label='PCld')
-    axslc[0].set_ylim(50.,180.)
-    axslc0.set_ylim(1500.,2200.)
-    axslc0.invert_yaxis()
-    axslc[0].legend(fontsize=8,loc='upper left',ncol=2,frameon=False)
-    axslc0.legend(fontsize=8,loc='upper right',frameon=False)
-
-    shift_px1, peak1, snr1 = _xcorr1d_circular(1.0/(Cld_array1/np.mean(Cld_array1)),
-                                            fNH3_array1/np.mean(fNH3_array1))
-    print("11111 shift_px, peak, snr=",shift_px1, peak1, snr1)
-    axslc[1].plot(lon_array,fNH3_array1,color='C2',label='fNH3')
-    #axslc[1].plot(lon_array,np.roll(fNH3_array1,10),color='C2',linestyle='dashed',linewidth=0.5)
-    axslc[1].plot(lon_array,np.roll(fNH3_array1,-int(shift_px1)),color='C0',
-                  alpha=0.3,label='fNH3 shifted '+str(-int(shift_px1))+' deg')
-    axslc1=axslc[1].twinx()
-    axslc1.plot(lon_array,Cld_array1,color='C0',label='PCld')
-    axslc[1].set_ylim(50.,180.)
-    axslc1.set_ylim(1500.,2200.)
-    axslc1.invert_yaxis()
-    axslc[1].legend(fontsize=8,loc='lower left',ncol=2,frameon=False)
-    axslc1.legend(fontsize=8,loc='lower right',frameon=False)
-
-    shift_px2, peak2, snr2 = _xcorr1d_circular(1.0/(Cld_array2/np.mean(Cld_array2)),
-                                            fNH3_array2/np.mean(fNH3_array2))
-    print("222222 shift_px, peak, snr=",shift_px2, peak2, snr2)
-    axslc[2].plot(lon_array,fNH3_array2,color='C2',label='fNH3')
-    #axslc[2].plot(lon_array,np.roll(fNH3_array2,10),color='C2',linestyle='dashed',linewidth=0.5)
-    axslc[2].plot(lon_array,np.roll(fNH3_array2,-int(shift_px2)),color='C0',
-                  alpha=0.3,label='fNH3 shifted '+str(-int(shift_px2))+' deg')
-
-    axslc2=axslc[2].twinx()
-    axslc2.plot(lon_array,Cld_array2,color='C0',label='PCld')
-    axslc[2].set_ylim(50.,180.)
-    axslc2.set_ylim(1500.,2200.)
-    axslc2.invert_yaxis()
-    axslc[2].legend(fontsize=8,loc='lower left',ncol=2,frameon=False)
-    axslc2.legend(fontsize=8,loc='lower right',frameon=False)
-
-
-    #axslc[1].plot(lon_array,PCld_array)
-    #axslc[2].plot(lon_array,fNH3_array2)
-    
+    # Assumes 15N - 15S range 
+    LatSlices=np.array([[11,8],[10,6],[6,3]])
     for i in range(0,3):
+        LatSlice=15-LatSlices[i,:]
+        if HST:
+            LatSlice=LatSlice*20
+            lon_array=np.arange(LonLims[1],LonLims[0],-0.05)+200
+            PCldminmax=[1000,3000]
+            fNH3minmax=[0,300]
+            fnout=path+collection+" HST Wave.png"
+        else:
+            lon_array=np.arange(LonLims[1],LonLims[0],-1)
+            PCldminmax=[1400,2400]
+            fNH3minmax=[50,200]
+            fnout=path+collection+" SCT Wave.png"
+
+        fNH3_array=np.mean(fNH3_patch_mb[LatSlice[0]:LatSlice[1],:],axis=0)
+        Cld_array=np.mean(PCld_patch_mb[LatSlice[0]:LatSlice[1],:],axis=0)
+
+        shift_px, peak, snr = _xcorr1d_circular(1.0/(Cld_array/np.mean(Cld_array)),
+                                                fNH3_array/np.mean(fNH3_array))
+        print("00000 shift_px, peak, snr=",shift_px, peak, snr)
+        axslc[i].plot(lon_array,fNH3_array,color='C2',label='fNH3')
+        #axslc[0].plot(lon_array,np.roll(fNH3_array0,10),color='C2',linestyle='dashed',linewidth=0.5)
+        axslc[i].plot(lon_array,np.roll(fNH3_array,-int(shift_px)),color='C0',
+                      alpha=0.3,label='fNH3 shifted '+str(-int(shift_px))+' deg')
+        axslcp=axslc[i].twinx()
+        axslcp.plot(lon_array,Cld_array,color='C0',label='PCld')
+        axslc[i].set_ylim(fNH3minmax[0],fNH3minmax[1])
+        axslcp.set_ylim(PCldminmax[0],PCldminmax[1])
+        axslcp.invert_yaxis()
+        axslc[i].legend(fontsize=8,loc='upper left',ncol=2,frameon=False)
+        axslcp.legend(fontsize=8,loc='upper right',frameon=False)
+    
         axslc[i].grid(linewidth=0.2)
         #axslc[i].set_xticks(np.linspace(450.,0.,31), minor=False)
         #axslc[i].set_yticks(np.linspace(-90,90,13), minor=False)
@@ -110,14 +91,9 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path):
         #axslc[i].set_adjustable('box')
         axslc[i].set_xlim(360,0.)
 
-    axslc0.set_ylabel("PCloud (mb)",color='C0')
-    axslc0.tick_params(axis='both', which='major', labelsize=8)
-    axslc1.set_ylabel("PCloud (mb)",color='C0')
-    axslc1.tick_params(axis='both', which='major', labelsize=8)
-    axslc2.set_ylabel("PCloud (mb)",color='C0')
-    axslc2.tick_params(axis='both', which='major', labelsize=8)
-    
-    axslc[2].set_xlabel("System 3 Longitude (deg)")
+    axslcp.set_ylabel("PCloud (mb)",color='C0')
+    axslcp.tick_params(axis='both', which='major', labelsize=8)
+    axslc[2].set_xlabel("System "+LonSys+" Longitude (deg)")
     
     axslc[0].set_title("8-11 deg PG Latitude - NEDFs",fontsize=10)
     axslc[1].set_title("6-10 deg PG Latitude - Plumes",fontsize=10)
@@ -132,8 +108,8 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path):
     #axslc[0].plot(lon_array,Rossby,color='k')
 
     figlc.subplots_adjust(bottom=0.07,top=0.92,left=0.10,right=0.90)
-   
-    figlc.savefig(path+collection+" Wave.png",dpi=150)
+    
+    figlc.savefig(fnout,dpi=150)
     #Autocorrelation (below) doesn't work well due to differing shapes
 
 
@@ -821,6 +797,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     import sys
     sys.path.append('../Profiles/code')
     sys.path.append('../Profiles/code')
+    sys.path.append('C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Profiles/code')
     import plot_profile_scatter as pps
 
     latstr,lonstr=MLLS.make_lat_lon_str(lats,LonLims)
@@ -1408,7 +1385,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     #!!!! Need to make MAPS! then use profiles modules to extract this!
     ###########################################################################
     if waveplot:
-        RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path)
+        RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,LonSys)
     
     if segment:
         return(lats,blendweightPCloud,blendweightfNH3,blendRGBweight,

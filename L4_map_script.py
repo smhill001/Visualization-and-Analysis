@@ -1,6 +1,6 @@
-def L4_map_script(collections=['AGU2025'],LonSys='1',lats=[75,105],LonLims=[0,360],
+def L4_map_script(collections=['HSTGO'],LonSys='1',lats=[75,105],LonLims=[0,360],
                        localmax=False,segment=False,variance=False,ctbls=['terrain_r','Blues'],
-                       proj='AGU2025'):
+                       proj='',makemaps=False):
     """
     Created on Sun Aug 25 15:04:22 2024
     
@@ -65,7 +65,9 @@ def L4_map_script(collections=['AGU2025'],LonSys='1',lats=[75,105],LonLims=[0,36
 
     maps2025=["20250919-20250919","20250925-20250926","20250930-20251001","20251016-20251017"]
     
-    
+    ###########################################################################
+    #  AGU 2025
+    ###########################################################################
     AGU2025=["20220730-20220730","20220818-20220818","20220904-20220905","20220925-20220925",
              "20231015-20231019","20231112-20231113","20231217-20231218","20240129-20240202",
              "20240919-20240919","20240925-20240929",
@@ -114,6 +116,47 @@ def L4_map_script(collections=['AGU2025'],LonSys='1',lats=[75,105],LonLims=[0,36
                  "20250930-20251001":False,
                  "20251016-20251017":False}
 
+    ###########################################################################
+    #  HST GO 18055 PROPOSAL
+    ###########################################################################
+    HSTGO=["20250919-20250919",
+           "20250925-20250926",
+           "20250930-20251001",
+           "20251016-20251017",
+           "20251019-20251019",
+           "20251020-20251020",
+           "20251116-20251116",
+           "20251119-20251119",
+           "20251214-20251214",
+           "20251215-20251215",
+           "20251216-20251216",
+           "20251222-20251222"]
+    HSTGOIRTF={"20250919-20250919":False,
+               "20250925-20250926":False,
+               "20251016-20251017":False,
+               "20251019-20251019":False,
+               "20251020-20251020":False,
+               "20250930-20251001":False,
+               "20251116-20251116":False,
+               "20251119-20251119":False,
+               "20251214-20251214":False,
+               "20251215-20251215":False,
+               "20251216-20251216":False,
+               "20251222-20251222":False}
+    HSTGO889={"20250919-20250919":False,
+              "20250925-20250926":False,
+              "20250930-20251001":False,
+              "20251016-20251017":False,
+              "20251019-20251019":False,
+              "20251020-20251020":False,
+              "20251116-20251116":False,
+              "20251119-20251119":False,
+              "20251214-20251214":False,
+              "20251215-20251215":False,
+              "20251216-20251216":False,
+              "20251222-20251222":False}
+
+
     pathmapplots="C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/"+proj+"/"
     
     if int(lats[0])<90:
@@ -159,6 +202,10 @@ def L4_map_script(collections=['AGU2025'],LonSys='1',lats=[75,105],LonLims=[0,36
             maps=AGU2025
             mapsIRTF=AGU2025IRTF
             mapsCH4889=AGU2025CH4889
+        if collection=='HSTGO':
+            maps=HSTGO
+            mapsIRTF=HSTGOIRTF
+            mapsCH4889=HSTGO889
         
         xfig=6.0
         yfig=6.0
@@ -254,13 +301,14 @@ def L4_map_script(collections=['AGU2025'],LonSys='1',lats=[75,105],LonLims=[0,36
             #    ROI,obslist,CM=NRC.NEDF_ROI_collections(collection=mp)
             #else:
             #    obslist,dummy=gmc.get_map_collection(mp)
-            obslist,dummy=gmc.get_map_collection(mp)
-            print("***** collection,obslist =",mp,obslist)
-            M4CM.make_L4_cont_maps(collection=mp,obskeys=False,LonSys=LonSys,
-                                  FiveMicron=False,Five_obskey='',IRTFcollection=False,
-                                  lats=[0,180],LonLims=[0,360],variance=True,proj='../../Data/L4 FITS (cont maps)/',
-                                  bare_maps=False,cb=False,LimbCorrection=True,
-                                  lonhalfwidth=45,boxcar=9)
+            if makemaps:
+                obslist,dummy=gmc.get_map_collection(mp)
+                print("***** collection,obslist =",mp,obslist)
+                M4CM.make_L4_cont_maps(collection=mp,obskeys=False,LonSys=LonSys,
+                                      FiveMicron=False,Five_obskey='',IRTFcollection=False,
+                                      lats=[0,180],LonLims=[0,360],variance=True,proj='../../Data/L4 FITS (cont maps)/',
+                                      bare_maps=False,cb=False,LimbCorrection=True,
+                                      lonhalfwidth=45,boxcar=9)
 
             print("------------ collection,mp=",collection,mp)
             L4MP.L4_Jup_Map_Plot_V2(collection=mp,IRTFcollection=mapsIRTF[mp],

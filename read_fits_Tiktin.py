@@ -69,16 +69,23 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
     
     sciobjects={'PCld':[],'fNH3':[]}
     RGBobjects={'NIR':[],'GRN':[],'BLU':[]}
-    for key in sciobjects:
+    for key in sciobjects: 
         filename=[item for item in filesSci if key in item][0]
         sciobjects[key]=read_fits_L3_V2_helper(pathSci+filename,target="Jupiter",
                              LonSys=LonSys,LimbCorrection=LimbCorrection)
     
     for key in RGBobjects:
-        print(key)
-        filename=[item for item in filesIGB if key in item][0]
-        RGBobjects[key]=read_fits_L3_V2_helper(pathIGB+filename,target="Jupiter",
-                             LonSys=LonSys,LimbCorrection=LimbCorrection)
+        print(key)    
+        templist=[item for item in filesIGB if key in item]
+        if not templist:
+            filename=[item for item in filesIGB if 'NIR' in item][0] #Kludge if missing GRN or BLU
+            ##!!! Should use 'try' logic to trap error and find any working RGB channel
+            RGBobjects[key]=read_fits_L3_V2_helper(pathIGB+filename,target="Jupiter",
+                                 LonSys=LonSys,LimbCorrection=LimbCorrection)
+        elif templist:
+            filename=templist[0]
+            RGBobjects[key]=read_fits_L3_V2_helper(pathIGB+filename,target="Jupiter",
+                                 LonSys=LonSys,LimbCorrection=LimbCorrection)
 
     IGBdatar=np.dstack((RGBobjects['NIR']['datar'],RGBobjects['GRN']['datar'],RGBobjects['BLU']['datar']))
     IGBdatarx=np.nan_to_num(IGBdatar, nan=0.0, posinf=1.0, neginf=0.0)
