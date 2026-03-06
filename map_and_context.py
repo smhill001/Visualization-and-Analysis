@@ -1,4 +1,32 @@
-def map_and_context(mapdata,maphdr,RGB,RGBtime,LonSys,LatLims,LonLims,LonRng,PlotCM,
+def make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
+                                 coef=0.0,FiveMicron=False):
+    import numpy as np
+    if coef==0.0:
+        correction='_C0'
+    else:
+        correction='_C1'
+    #print("360-LonLims[0],360-LonLims[1]=",360-LonLims[0],360-LonLims[1])
+    if FiveMicron:
+        fnskeleton=correction+'_Sys'+LonSys+'_N'+\
+                    str(90-LatLims[0])+'-S'+str(LatLims[1]-90)+\
+                    '_Lon'+str(np.mod(360-LonLims[1],360)).zfill(3)+'-'+\
+                        str(np.mod(360-LonLims[0],360)).zfill(3)+'_5micron.png'
+    else:
+        fnskeleton=correction+'_Sys'+LonSys+'_N'+\
+                    str(90-LatLims[0])+'-S'+str(LatLims[1]-90)+\
+                    '_Lon'+str(np.mod(360-LonLims[1],360)).zfill(3)+'-'+\
+                        str(np.mod(360-LonLims[0],360)).zfill(3)+'.png'
+
+    ###!!!! Temporary fix for the fact that L2 header FILENAME doesn't contain
+    ###!!!! the file extension and L3 header FILENAME does!
+    if Level=='L2':
+        fnout=filename+fnskeleton
+    elif Level=='L3':
+        fnout=filename[:-5]+fnskeleton
+    return fnout
+
+
+def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,LonLims,LonRng,PlotCM,
                     amfdata,coef,low,high,showbands,FiveMicron,figxy,ct,pathout,
                     Level='L3',suptitle="Test",cbar_rev=False,cbar_title="Test",
                     ROI=False):
@@ -106,16 +134,16 @@ def map_and_context(mapdata,maphdr,RGB,RGBtime,LonSys,LatLims,LonLims,LonRng,Plo
     
     temp=PC.plot_contours_on_patch(axs1[0],data_patch,LatLims,LonLims,
                            lvls=tx,frmt='%3.0f',clr='k')
-        
-    if maphdr["TELESCOP"]=="NASA IRTF":
-        axs1[0].set_title("IRTF 5um Radiance (Log10(arb. units))",fontsize=10)
-    else:
-        if maphdr["BUNIT"]=="Cloud-top Press":
-            axs1[0].set_title("Cloud Top Pressure (mb)",fontsize=10)        
-        if maphdr["BUNIT"]=="Mole Fraction":
-            axs1[0].set_title(r'$\bar{f_c}(NH3) (ppm)$',fontsize=10)
+    #Temporary comment while refactoring L3 and L4 plotting    
+    #if maphdr["TELESCOP"]=="NASA IRTF":
+    #    axs1[0].set_title("IRTF 5um Radiance (Log10(arb. units))",fontsize=10)
+    #else:
+    if bunit=="Cloud-top Press":
+        axs1[0].set_title("Cloud Top Pressure (mb)",fontsize=10)        
+    if bunit=="Mole Fraction":
+        axs1[0].set_title(r'$\bar{f_c}(NH3) (ppm)$',fontsize=10)
 
-    axs1[0].set_title(maphdr["DATE-OBS"],fontsize=10)
+    axs1[0].set_title(dateobs,fontsize=10)
 
     gamma=1.3
 
@@ -179,28 +207,8 @@ def map_and_context(mapdata,maphdr,RGB,RGBtime,LonSys,LatLims,LonLims,LonRng,Plo
                 wspace=0.25, hspace=0.05)     
     axs1[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 1.015, box.height * 1.015])
 
-    if coef==0.0:
-        correction='_C0'
-    else:
-        correction='_C1'
-    #print("360-LonLims[0],360-LonLims[1]=",360-LonLims[0],360-LonLims[1])
-    if FiveMicron:
-        fnskeleton=correction+'_Sys'+LonSys+'_N'+\
-                    str(90-LatLims[0])+'-S'+str(LatLims[1]-90)+\
-                    '_Lon'+str(np.mod(360-LonLims[1],360)).zfill(3)+'-'+\
-                        str(np.mod(360-LonLims[0],360)).zfill(3)+'_5micron.png'
-    else:
-        fnskeleton=correction+'_Sys'+LonSys+'_N'+\
-                    str(90-LatLims[0])+'-S'+str(LatLims[1]-90)+\
-                    '_Lon'+str(np.mod(360-LonLims[1],360)).zfill(3)+'-'+\
-                        str(np.mod(360-LonLims[0],360)).zfill(3)+'.png'
-
-    ###!!!! Temporary fix for the fact that L2 header FILENAME doesn't contain
-    ###!!!! the file extension and L3 header FILENAME does!
-    if Level=='L2':
-        fnout=maphdr["FILENAME"]+fnskeleton
-    elif Level=='L3':
-        fnout=maphdr["FILENAME"][:-5]+fnskeleton
+    fnout=make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
+                                 coef=0.0,FiveMicron=False)
         
     fig1.savefig(pathout+fnout,dpi=300)
     

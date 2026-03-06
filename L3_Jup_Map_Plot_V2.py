@@ -5,7 +5,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
                         CMpref='subobs',LonSys='2',showbands=False,
                         coef=[0.,0.],subproj='',figxy=[8.0,4.0],FiveMicron=False,
                         ROI=False,ctbls=["terrain_r","Blues"],
-                        LimbCorrection=False,dataversion=2):
+                        LimbCorrection=False,surfplot=False,dataversion=2):
     """
     Created on Sun Nov  6 16:47:21 2022
     
@@ -48,6 +48,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     import make_patch as MP
     import map_and_context as mac
     import map_and_scatter as mas
+    import map_cloudsurface as msurf
+    import L4_Jup_Map_Plot_V2 as L4M
 
     if ctbls[0]=="jet":
         fNH3low=60
@@ -62,24 +64,46 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
         
     micronlow=0.5
     micronhigh=3.5
-
-    if (not FiveMicron) or FiveMicron=="png":
-        if dataversion==2:
-            PCldhdr,PClddata,fNH3hdr,fNH3data,RGB,RGB_CM,RGBtime= \
-                            RF2.read_fits_map_L3_V2(obskey=obskey,imagetype="Map",
-                                                    target=target,Level="L3",
-                                                    LonSys=LonSys,
-                                                    LimbCorrection=LimbCorrection,
-                                                    pathin=config_VA[dataversion])
-        elif dataversion==1:
-            PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime= \
-                            RF2.read_fits_map_L3_V1(obskey=obskey,LonSys=LonSys,
-                                                    imagetype="Map",Level="L3",
-                                                    target=target,
-                                                    LimbCorrection=LimbCorrection,
-                                                    pathin=config_VA[dataversion])
-        fNH3CM=fNH3hdr['CM'+LonSys]
-        PCldCM=PCldhdr['CM'+LonSys]
+    print("############### len(obskey)= ",len(obskey))
+    if len(obskey)==11:
+        if (not FiveMicron) or FiveMicron=="png":
+            if dataversion==2:
+                PCldhdr,PClddata,fNH3hdr,fNH3data,RGB,RGB_CM,RGBtime= \
+                                RF2.read_fits_map_L3_V2(obskey=obskey,imagetype="Map",
+                                                        target=target,Level="L3",
+                                                        LonSys=LonSys,
+                                                        LimbCorrection=LimbCorrection,
+                                                        dataversion=dataversion)
+            elif dataversion==1:
+                PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime= \
+                                RF2.read_fits_map_L3_V1(obskey=obskey,LonSys=LonSys,
+                                                        imagetype="Map",Level="L3",
+                                                        target=target,
+                                                        LimbCorrection=LimbCorrection,
+                                                        dataversion=dataversion)
+            elif dataversion=="H":
+                PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime= \
+                                RF2.read_fits_map_L3_VH(obskey=obskey,LonSys=LonSys,
+                                                        imagetype="Map",Level="L3",
+                                                        target=target,
+                                                        LimbCorrection=LimbCorrection,
+                                                        dataversion=dataversion)
+            fNH3CM=fNH3hdr['CM'+LonSys]
+            PCldCM=PCldhdr['CM'+LonSys]
+        
+    elif len(obskey)==17:
+        print("@@@@@@@@@@@@@@@@")
+        collection=obskey
+        ###########################################################################
+        # READ L4 BLENDED MAPS (fNH3, PCld, and IGB)
+        fNH3data,fNH3stdv,fNH3frac,blendweightfNH3time,fNH3hdr,\
+            PClddata,PCldstdv,PCldfrac,blendweightPCldtime,PCldhdr,\
+            RGB,RGBstdv,RGBfrac,RGBtimearray,RGBhdr, \
+            blendweightIRTF,IRTFstdv,IRTFfrac,IRTFtime,blendweightCH4889=\
+            L4M.read_fits_map_L4(LonSys,collection=collection,
+                                  collectionIRTF=False,
+                                  collection889CH4=False)
+        RGBtime=RGBhdr["DATE-OBS"]
         
     #elif FiveMicron=="fits":
     #    PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime,micronhdr,microndatar= \
@@ -133,7 +157,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     ###########################################################################
     ## Just RGB and Abundance
     ###########################################################################
-    fNH3_patch_mb,TestfNH3,tx_fNH3,fnNH3,RGB4Display=mac.map_and_context(fNH3data,fNH3hdr,
+    fNH3_patch_mb,TestfNH3,tx_fNH3,fnNH3,RGB4Display=mac.map_and_context(fNH3data,
+                                                       fNH3hdr["DATE-OBS"],fNH3hdr["BUNIT"],fNH3hdr["FILENAME"],
                                                        RGB,RGBtime,
                                                        LonSys,LatLims,NH3LonLims,
                                                        LonRng,fNH3PlotCM,
@@ -148,7 +173,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     ###########################################################################
     ## Just RGB and Cloud Pressure
     ###########################################################################
-    PCld_patch,TestPCld,tx_PCld,fnPCld,RGB4Display=mac.map_and_context(PClddata,PCldhdr,
+    PCld_patch,TestPCld,tx_PCld,fnPCld,RGB4Display=mac.map_and_context(PClddata,
+                                                        PCldhdr["DATE-OBS"],PCldhdr["BUNIT"],PCldhdr["FILENAME"],
                                                         RGB,RGBtime,
                                                         LonSys,LatLims,NH3LonLims,
                                                         LonRng,PCldPlotCM,
@@ -159,6 +185,13 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
                                                         cbar_rev=True,
                                                         cbar_title="Cloud Top Pressure (mb)",
                                                         ROI=ROI)
+
+    if surfplot:
+        path="C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/"+subproj+"/"
+        msurf.map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
+                               PCldhdr,fNH3hdr,RGBtime,
+                               LonSys,LatLims,[360-NH3LonLims[1],360-NH3LonLims[0]],
+                               180,180,path)
 
     ###########################################################################
     ## Just RGB and 5 micron
@@ -179,7 +212,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     ## Compute Band or ROI Scatter Plot (PCloud vs fNH3)
     ###########################################################################
     dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf=\
-        mas.map_and_scatter(fNH3_patch_mb,PCld_patch,PClddata,fNH3hdr,LonSys,
+        mas.map_and_scatter(fNH3_patch_mb,PCld_patch,PClddata,fNH3hdr['DATE-OBS'],LonSys,
         LatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
         coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
         figxy,ctbls[1],pathmapplots,"PCloud & fNH3 (contours)",

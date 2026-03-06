@@ -1,7 +1,7 @@
 from config_VA import config_VA
 
 def read_fits_L3_V2_helper(pathandfile,target="Jupiter",LonSys='3',
-                     LimbCorrection=False):
+                     LimbCorrection=False,dataversion=2):
     
     import get_spice_ephem as sp_ephem
     from astropy.io import fits
@@ -14,10 +14,11 @@ def read_fits_L3_V2_helper(pathandfile,target="Jupiter",LonSys='3',
     hdulist.info()
     dataobj['hdr']=hdulist[0].header
     dataobj['data']=np.flipud(hdulist[0].data[0])
-    dataobj['lon']=np.flipud(hdulist[1].data)
-    dataobj['lat']=np.flipud(hdulist[2].data)
-    dataobj['sza']=np.flipud(hdulist[3].data) #!!!! Might have eza and sza reversed
-    dataobj['eza']=np.flipud(hdulist[4].data) #!!!! Might have eza and sza reversed
+    if dataversion!='H':
+        dataobj['lon']=np.flipud(hdulist[1].data)
+        dataobj['lat']=np.flipud(hdulist[2].data)
+        dataobj['sza']=np.flipud(hdulist[3].data) #!!!! Might have eza and sza reversed
+        dataobj['eza']=np.flipud(hdulist[4].data) #!!!! Might have eza and sza reversed
     hdulist.close()
 
     CM3ck=float(dataobj['hdr']["HIERARCH PLANMAP SUBPOINT LON"])
@@ -45,7 +46,7 @@ def read_fits_L3_V2_helper(pathandfile,target="Jupiter",LonSys='3',
 
 def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
                         target="Jupiter",LonSys='3',
-                        LimbCorrection=False,pathin=config_VA[2]):
+                        LimbCorrection=False,dataversion=2):
 
     import sys
     import os
@@ -59,33 +60,37 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
 
     sys.path.append('./Services')
     import numpy as np
-
+    pathin=config_VA[dataversion]
     #pathSci=pathin+"New_Results/"+obskey[:-1]+"/"+obskey+"/"+Level+'/'
     pathSci=pathin+"/"+obskey[:-1]+"/"+obskey+"/"+Level+'/'
     filesSci=os.listdir(pathSci)
     #pathIGB=pathin+'New_Results/'+obskey[:-1]+'/'+obskey+'/L1/'
     pathIGB=pathin+'/'+obskey[:-1]+'/'+obskey+'/L1/'
     filesIGB=os.listdir(pathIGB)
-    
+
     sciobjects={'PCld':[],'fNH3':[]}
-    RGBobjects={'NIR':[],'GRN':[],'BLU':[]}
+    if dataversion==2:
+        RGBobjects={'NIR':[],'GRN':[],'BLU':[]}
+    elif dataversion=='H':
+        RGBobjects={'673':[],'502':[],'395':[]}
+
     for key in sciobjects: 
         filename=[item for item in filesSci if key in item][0]
         sciobjects[key]=read_fits_L3_V2_helper(pathSci+filename,target="Jupiter",
-                             LonSys=LonSys,LimbCorrection=LimbCorrection)
+                             LonSys=LonSys,LimbCorrection=LimbCorrection,dataversion=dataversion)
     
     for key in RGBobjects:
         print(key)    
         templist=[item for item in filesIGB if key in item]
         if not templist:
-            filename=[item for item in filesIGB if 'NIR' in item][0] #Kludge if missing GRN or BLU
+            filename=[item for item in filesIGB if RGBobjects[0] in item][0] #Kludge if missing GRN or BLU
             ##!!! Should use 'try' logic to trap error and find any working RGB channel
             RGBobjects[key]=read_fits_L3_V2_helper(pathIGB+filename,target="Jupiter",
-                                 LonSys=LonSys,LimbCorrection=LimbCorrection)
+                                 LonSys=LonSys,LimbCorrection=LimbCorrection,dataversion=dataversion)
         elif templist:
             filename=templist[0]
             RGBobjects[key]=read_fits_L3_V2_helper(pathIGB+filename,target="Jupiter",
-                                 LonSys=LonSys,LimbCorrection=LimbCorrection)
+                                 LonSys=LonSys,LimbCorrection=LimbCorrection,dataversion=dataversion)
 
     IGBdatar=np.dstack((RGBobjects['NIR']['datar'],RGBobjects['GRN']['datar'],RGBobjects['BLU']['datar']))
     IGBdatarx=np.nan_to_num(IGBdatar, nan=0.0, posinf=1.0, neginf=0.0)
@@ -96,7 +101,7 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
 
 def read_fits_map_L3_V1(obskey="20231026UTa",imagetype="Map",Level="L3",
                         target="Jupiter",LonSys='3',
-                        LimbCorrection=False,pathin=config_VA[1]):
+                        LimbCorrection=False,dataversion=1):
     """
     Created on Mon Nov 20 08:42:28 2023
     Called by: Map_Jup_Atm_2022_P3, currently only for L3 data to plot
@@ -121,6 +126,7 @@ def read_fits_map_L3_V1(obskey="20231026UTa",imagetype="Map",Level="L3",
     import get_spice_ephem as sp_ephem
     import numpy as np
 
+    pathin=config_VA[dataversion]
     sourcedata=obskey#+"_"+imagetype
     sourcefiles=getlist.get_obs_list(planet=target)
     pathRGB='c:/Astronomy/Projects/Planets/'+target+'/Imaging Data/'+obskey[0:10]+'/'

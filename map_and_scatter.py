@@ -1,4 +1,4 @@
-def map_and_scatter(patchx,patchy,mapydata,mapyhdr,LonSys,
+def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
                     LatLims,LonLims,LonRng,PlotCM,fnout,
                     coef,txin,xlow,xhigh,ylow,yhigh,figxy,
                     ct,pathout,Ltitle,Rtitle,Level='L3',FiveMicron=False,
@@ -20,7 +20,7 @@ def map_and_scatter(patchx,patchy,mapydata,mapyhdr,LonSys,
         DESCRIPTION.
     mapydata : TYPE
         DESCRIPTION.
-    mapyhdr : TYPE
+    dateobs : TYPE
         DESCRIPTION.
     LonSys : TYPE
         DESCRIPTION.
@@ -100,7 +100,7 @@ def map_and_scatter(patchx,patchy,mapydata,mapyhdr,LonSys,
     ###########################################################################
     fig3,axs3=pl.subplots(1,2,figsize=(figxy[0],figxy[1]), dpi=150, facecolor="white")
     #fig3.suptitle(suptitle,x=0.5,ha='center',color='k')
-    fig3.suptitle(mapyhdr["DATE-OBS"].replace("_"," ")+", CM"+LonSys+"="
+    fig3.suptitle(dateobs.replace("_"," ")+", CM"+LonSys+"="
                   +str(int(PlotCM)),x=0.5,ha='center',color='k')
 
     axs3[0].grid(linewidth=0.2)
@@ -224,7 +224,6 @@ def map_and_scatter(patchx,patchy,mapydata,mapyhdr,LonSys,
                          wspace=0.4)
     fig3.savefig(pathout+fnout,dpi=300)
     
-    dateobs=mapyhdr["DATE-OBS"]
     if not ROI:
         meanamf=False
 

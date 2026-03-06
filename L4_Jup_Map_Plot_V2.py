@@ -1,5 +1,5 @@
 def ApplyContours(axs1,RGBaxs,fNH3_patch_mb,tx_fNH3,PCld_patch_mb,tx_PCld,
-                  lats,LonLims,IRTFcollection=False,IRTFaxs='',
+                  LatLims,LonLims,IRTFcollection=False,IRTFaxs='',
                   CH4889collection=False,CH4889plot=False,CH4889axs='',
                   HST=False):
     
@@ -12,24 +12,24 @@ def ApplyContours(axs1,RGBaxs,fNH3_patch_mb,tx_fNH3,PCld_patch_mb,tx_PCld,
         Lons=[LonLims[0],LonLims[1]]
     else:
         Lons=[360-LonLims[1],360-LonLims[0]]
-    temp=PC.plot_contours_on_patch(axs1[0],fNH3_patch_mb,lats,Lons,
+    temp=PC.plot_contours_on_patch(axs1[0],fNH3_patch_mb,LatLims,Lons,
                                     tx_fNH3, frmt='%3.0f', clr='k')
-    temp=PC.plot_contours_on_patch(axs1[1],PCld_patch_mb,lats,Lons,
+    temp=PC.plot_contours_on_patch(axs1[1],PCld_patch_mb,LatLims,Lons,
                                     tx_PCld, frmt='%3.0f', clr='r')
-    temp=PC.plot_contours_on_patch(axs1[RGBaxs],fNH3_patch_mb,lats,Lons,
+    temp=PC.plot_contours_on_patch(axs1[RGBaxs],fNH3_patch_mb,LatLims,Lons,
                                     tx_fNH3, frmt='%3.0f', clr='k')
-    temp=PC.plot_contours_on_patch(axs1[RGBaxs],PCld_patch_mb,lats,Lons,
+    temp=PC.plot_contours_on_patch(axs1[RGBaxs],PCld_patch_mb,LatLims,Lons,
                                     tx_PCld, frmt='%3.0f', clr='r')
     if IRTFcollection:
-        temp=PC.plot_contours_on_patch(axs1[IRTFaxs],fNH3_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+        temp=PC.plot_contours_on_patch(axs1[IRTFaxs],fNH3_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                         tx_fNH3[-2:], frmt='%3.0f', clr='k')
-        temp=PC.plot_contours_on_patch(axs1[IRTFaxs],PCld_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+        temp=PC.plot_contours_on_patch(axs1[IRTFaxs],PCld_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                         tx_PCld[:5], frmt='%3.0f', clr='r')
     if CH4889collection:
     #if CH4889plot:
-        temp=PC.plot_contours_on_patch(axs1[CH4889axs],fNH3_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+        temp=PC.plot_contours_on_patch(axs1[CH4889axs],fNH3_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                         tx_fNH3[-2:], frmt='%3.0f', clr='k')
-        temp=PC.plot_contours_on_patch(axs1[CH4889axs],PCld_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+        temp=PC.plot_contours_on_patch(axs1[CH4889axs],PCld_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                         tx_PCld[:5], frmt='%3.0f', clr='r')
 
 def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
@@ -183,7 +183,7 @@ def set_up_figure(figsz,collection,LonSys,RGBaxs=2):
 
     return fig1,axs1
 
-def ReadContiguousMap(LonSys,collection="20220904-20220905",
+def read_fits_map_L4(LonSys,collection="20220904-20220905",
                       collectionIRTF="20240205-20240205",
                       collection889CH4="20240131-20240201"):
     """
@@ -395,13 +395,13 @@ def ReadContiguousMap(LonSys,collection="20220904-20220905",
     else:
         JALPOdata=np.zeros((180,360))
     
-    return fNH3data,fNH3stdv,fNH3frac,fNH3time,\
-        PClddata,PCldstdv,PCldfrac,PCldtime, \
-        RGBdata,RGBstdv,RGBfrac,RGBtime, \
+    return fNH3data,fNH3stdv,fNH3frac,fNH3time,fNH3hdr, \
+        PClddata,PCldstdv,PCldfrac,PCldtime,PCldhdr, \
+        RGBdata,RGBstdv,RGBfrac,RGBtime,RGBhdr, \
         IRTFdata,IRTFstdv,IRTFfrac,IRTFtime, \
         JALPOdata
 
-def plot_optical_maps(LonLims,lats,collection,blendweightfNH3,
+def plot_optical_maps(LonLims,LatLims,collection,blendweightfNH3,
                       blendweightPCloud,blendweightTime,blendRGBweight,
                       ctbls,variance,fracfNH3,fracPCloud,RGBaxs,LonSys):
     """
@@ -411,7 +411,7 @@ def plot_optical_maps(LonLims,lats,collection,blendweightfNH3,
     ----------
     LonLims : TYPE
         DESCRIPTION.
-    lats : TYPE
+    LatLims : TYPE
         DESCRIPTION.
     collection : TYPE
         DESCRIPTION.
@@ -482,7 +482,7 @@ def plot_optical_maps(LonLims,lats,collection,blendweightfNH3,
     #BEGIN PLOTTING
     ###########################################################################
     # Determine figure size (inches) based on aspect ratio of data set
-    figsz,aspectratio,plot_adjust = figsize_and_aspect(lats,LonLims)
+    figsz,aspectratio,plot_adjust = figsize_and_aspect(LatLims,LonLims)
     if RGBaxs==4:
         figsz[1]=figsz[1]*1.36
         
@@ -504,11 +504,11 @@ def plot_optical_maps(LonLims,lats,collection,blendweightfNH3,
     #NH3 patch plot
     print("###############")
     print([360-LonLims[1],360-LonLims[0]])
-    print(lats)
-    fNH3_patch_mb=MP.make_patch(blendweightfNH3,lats,[360-LonLims[1],360-LonLims[0]],
+    print(LatLims)
+    fNH3_patch_mb=MP.make_patch(blendweightfNH3,LatLims,[360-LonLims[1],360-LonLims[0]],
                                      180,180)
     cbttl="Mean="+str(np.mean(fNH3_patch_mb))[:3]+" $\pm$ "+str(np.std(fNH3_patch_mb))[:2]
-    fNH3_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(fNH3_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+    fNH3_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(fNH3_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                      180,180,ctbls[0],
                                      axs1[0],'%3.2f',n=6,
                                      vn=fNH3low,
@@ -524,16 +524,16 @@ def plot_optical_maps(LonLims,lats,collection,blendweightfNH3,
     lonres=LonLims[1]-1.5*r
     print("############################# LonLims[1]-LonLims[0]=",LonLims[1]-LonLims[0])
     x = lonres+r*np.cos(theta)
-    y = (90-lats[0])-1.5*r+r*np.sin(theta)
+    y = (90-LatLims[0])-1.5*r+r*np.sin(theta)
     axs1[0].plot(x,y,'k',clip_on=False)
 
     ###########################################################################
     #PCloud patch plot
-    PCld_patch_mb=MP.make_patch(blendweightPCloud,lats,
+    PCld_patch_mb=MP.make_patch(blendweightPCloud,LatLims,
                                 [360-LonLims[1],360-LonLims[0]],180,180)
     cbttl="Mean = "+str(np.mean(PCld_patch_mb))[:4]+" $\pm$ "+str(np.std(PCld_patch_mb))[:3]
 
-    PCld_patch_mb,vn,vx,tx_PCld=PP.plot_patch(PCld_patch_mb,lats,
+    PCld_patch_mb,vn,vx,tx_PCld=PP.plot_patch(PCld_patch_mb,LatLims,
                                               [360-LonLims[1],360-LonLims[0]],
                                               180,180,ctbls[1],
                                               axs1[1],'%3.2f',n=5,
@@ -542,7 +542,7 @@ def plot_optical_maps(LonLims,lats,collection,blendweightfNH3,
                                               cbar_title=cbttl,cbar_reverse=True)
     axs1[1].set_title('PCloud (mbar)',fontsize=10)
     
-    blendweightTime_patch=MP.make_patch(blendweightTime,lats,
+    blendweightTime_patch=MP.make_patch(blendweightTime,LatLims,
                                         [360-LonLims[1],360-LonLims[0]],
                                         180,180)
 
@@ -555,12 +555,12 @@ def plot_optical_maps(LonLims,lats,collection,blendweightfNH3,
     ###########################################################################
     # Done with IRTF branch, now, finally, do the RGB context image
     ###########################################################################
-    RGB_patch=MP.make_patch(blendRGBweight,lats,[360-LonLims[1],360-LonLims[0]],
+    RGB_patch=MP.make_patch(blendRGBweight,LatLims,[360-LonLims[1],360-LonLims[0]],
                             180,180)
     RGB4Display=np.power(np.array(RGB_patch).astype(float),1.0)
     show=axs1[RGBaxs].imshow(RGB4Display,
-               extent=[LonLims[1],LonLims[0],90-lats[1],
-                       90-lats[0]],
+               extent=[LonLims[1],LonLims[0],90-LatLims[1],
+                       90-LatLims[0]],
                        aspect="equal")
 
     im_ratio = RGB_patch.shape[0]/RGB_patch.shape[1]
@@ -578,28 +578,28 @@ def plot_optical_maps(LonLims,lats,collection,blendweightfNH3,
     
         print("###############")
         print([360-LonLims[1],360-LonLims[0]])
-        fracfNH3_patch_mb=MP.make_patch(fracfNH3,lats,[360-LonLims[1],360-LonLims[0]],
+        fracfNH3_patch_mb=MP.make_patch(fracfNH3,LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180)
 
-        fracfNH3_patch_mb,vn,vx,tx_fNH3frac=PP.plot_patch(fracfNH3_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+        fracfNH3_patch_mb,vn,vx,tx_fNH3frac=PP.plot_patch(fracfNH3_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,"jet",
                                          axs2[0],'%3.2f',n=6,vn=0,vx=0.5,
                                          cbar_title="")
         print("vn,vx,tx_fNH3",vn,vx,tx_fNH3)
         axs2[0].set_title('fNH3 (fractional '+r'$\sigma$'+')',fontsize=10)
     
-        fracPCld_patch_mb=MP.make_patch(fracPCloud,lats,[360-LonLims[1],360-LonLims[0]],
+        fracPCld_patch_mb=MP.make_patch(fracPCloud,LatLims,[360-LonLims[1],360-LonLims[0]],
                                         180,180)
 
-        fracPCld_patch_mb,vn,vx,tx_PCldfrac=PP.plot_patch(fracPCld_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+        fracPCld_patch_mb,vn,vx,tx_PCldfrac=PP.plot_patch(fracPCld_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,"jet",
                                          axs2[1],'%3.2f',n=6,vn=0,vx=0.25,
                                          cbar_title="")
         axs2[1].set_title('PCloud (fractional '+r'$\sigma$'+')',fontsize=10)
 
         show=axs2[RGBaxs].imshow(RGB4Display,
-                   extent=[LonLims[1],LonLims[0],90-lats[1],
-                           90-lats[0]],
+                   extent=[LonLims[1],LonLims[0],90-LatLims[1],
+                           90-LatLims[0]],
                            aspect="equal")
         cbar = pl.colorbar(show, 
                    orientation='vertical',cmap='gist_heat',
@@ -614,7 +614,7 @@ def plot_optical_maps(LonLims,lats,collection,blendweightfNH3,
         fNH3low,fNH3high,PCldlow,PCldhigh,blendweightTime_patch,aspectratio,\
         RGB4Display,RGBaxs,plot_adjust
             
-def plot_5u_map(blendweightIRTF,LonLims,lats,axs1,axs2,variance,fracIRTF,IRTFaxs):
+def plot_5u_map(blendweightIRTF,LonLims,LatLims,axs1,axs2,variance,fracIRTF,IRTFaxs):
     import numpy as np
     import make_patch as MP
     import plot_patch as PP
@@ -622,20 +622,20 @@ def plot_5u_map(blendweightIRTF,LonLims,lats,axs1,axs2,variance,fracIRTF,IRTFaxs
     #PLOT IRTF data
     ###########################################################################
     print("IN IRTF PLOT ######################")
-    IRTF_patch=MP.make_patch(np.log10(blendweightIRTF,where=blendweightIRTF > 0),lats,
+    IRTF_patch=MP.make_patch(np.log10(blendweightIRTF,where=blendweightIRTF > 0),LatLims,
                              [360-LonLims[1],360-LonLims[0]],180,180)
 
-    IRTF_patch,vn,vx,tx_IRTF=PP.plot_patch(IRTF_patch,lats,[360-LonLims[1],360-LonLims[0]],
+    IRTF_patch,vn,vx,tx_IRTF=PP.plot_patch(IRTF_patch,LatLims,[360-LonLims[1],360-LonLims[0]],
                                      180,180,"gist_heat",
                                      axs1[IRTFaxs],'%3.2f',n=5,vn=1.5,vx=3.5,
                                      cbar_title="")
     axs1[IRTFaxs].set_title('IRTF',fontsize=10)
 
     if variance:
-        fracIRTF_patch=MP.make_patch(fracIRTF,lats,[360-LonLims[1],360-LonLims[0]],
+        fracIRTF_patch=MP.make_patch(fracIRTF,LatLims,[360-LonLims[1],360-LonLims[0]],
                                         180,180)
 
-        fracIRTF_patch,vn,vx,tx_PCld=PP.plot_patch(fracIRTF_patch,lats,[360-LonLims[1],360-LonLims[0]],
+        fracIRTF_patch,vn,vx,tx_PCld=PP.plot_patch(fracIRTF_patch,LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,"jet",
                                          axs2[IRTFaxs],'%3.2f',n=6,vn=0,vx=0.50,
                                          cbar_title="")
@@ -643,17 +643,17 @@ def plot_5u_map(blendweightIRTF,LonLims,lats,axs1,axs2,variance,fracIRTF,IRTFaxs
         
     return
 
-def plot_JALPO_map(blendweightCH4889,LonLims,lats,axs1,axs2,variance,CH4889axs):
+def plot_JALPO_map(blendweightCH4889,LonLims,LatLims,axs1,axs2,variance,CH4889axs):
     import numpy as np
     import make_patch as MP
     import plot_patch as PP
     ###########################################################################
     #PLOT IRTF data
     ###########################################################################
-    CH4889_patch=MP.make_patch(blendweightCH4889,lats,
+    CH4889_patch=MP.make_patch(blendweightCH4889,LatLims,
                                [360-LonLims[1],360-LonLims[0]],180,180)
 
-    CH4889_patch,vn,vx,tx_889=PP.plot_patch(CH4889_patch,lats,[360-LonLims[1],360-LonLims[0]],
+    CH4889_patch,vn,vx,tx_889=PP.plot_patch(CH4889_patch,LatLims,[360-LonLims[1],360-LonLims[0]],
                                      180,180,"gray",axs1[CH4889axs],'%3.2f',
                                      n=5,vn=1,vx=256.0,cbar_title="")
     
@@ -662,7 +662,7 @@ def plot_JALPO_map(blendweightCH4889,LonLims,lats,axs1,axs2,variance,CH4889axs):
     if variance:
         frac889_patch=np.zeros(CH4889_patch.shape)
 
-        frac889_patch,vn,vx,tx_PCld=PP.plot_patch(frac889_patch,lats,
+        frac889_patch,vn,vx,tx_PCld=PP.plot_patch(frac889_patch,LatLims,
                                          [360-LonLims[1],360-LonLims[0]],
                                          180,180,"jet",axs2[CH4889axs],'%3.2f',
                                          n=6,vn=0,vx=0.50,cbar_title="")
@@ -708,7 +708,7 @@ def make_bare_map(blendweight,ctbl,low,high,pathmapplots,collection,LonSys,env_d
     
 def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-20240205',
                     CH4889collection="20240131-20240201",LonSys='1',
-                      lats=[0,180],LonLims=[0,360],figsz=[6.0,6.0],ROI=False,
+                      LatLims=[0,180],LonLims=[0,360],figsz=[6.0,6.0],ROI=False,
                       variance=False,localmax=False,segment=False,
                       proj='AGU2025',ctbls=['terrain_r','Blues'],
                       cont=False,bare_maps=False,cb=False,
@@ -716,7 +716,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
                       axCH4889=False,axNH3vCloud=False,axNH3vIRTF=False,
                       axIRTFvPCld=False,ax889vPCld=False,counter=0,countmax=0,
                       waveplot=False,meridplot=False,CH4889plot=False,
-                      surfplot=False):
+                      surfplot=False,L3style=False):
     """
     Main program for making plots of blended, contiguous maps, including
     analysis tools and overplotting
@@ -731,7 +731,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         DESCRIPTION. The default is "20240131-20240201".
     LonSys : TYPE, optional
         DESCRIPTION. The default is '1'.
-    lats : TYPE, optional
+    LatLims : TYPE, optional
         DESCRIPTION. The default is [0,180].
     LonLims : TYPE, optional
         DESCRIPTION. The default is [0,360].
@@ -793,6 +793,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     import make_lat_lon_str as MLLS
     import matplotlib.pyplot as pl
     import map_cloudsurface as msurf
+    import map_and_scatter as mas
 
     import sys
     sys.path.append('../Profiles/code')
@@ -800,7 +801,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     sys.path.append('C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Profiles/code')
     import plot_profile_scatter as pps
 
-    latstr,lonstr=MLLS.make_lat_lon_str(lats,LonLims)
+    latstr,lonstr=MLLS.make_lat_lon_str(LatLims,LonLims)
     path="C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/"+proj+"/"
 
     if IRTFcollection and CH4889collection:
@@ -821,18 +822,22 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     print("####### LonSys,collection,IRTFcollection,CH4889collection",
           LonSys,collection,IRTFcollection,CH4889collection)
     print()
-    blendweightfNH3,fNH3stdv,fNH3frac,blendweightfNH3time,\
-        blendweightPCloud,PCldstdv,PCldfrac,blendweightPCldtime,\
-        blendRGBweight,RGBstdv,RGBfrac,RGBtime,\
+    ###########################################################################
+    # READ L4 BLENDED MAPS (fNH3, PCld, and IGB)
+    blendweightfNH3,fNH3stdv,fNH3frac,blendweightfNH3time,fNH3hdr,\
+        blendweightPCloud,PCldstdv,PCldfrac,blendweightPCldtime,PCldhdr,\
+        blendRGBweight,RGBstdv,RGBfrac,RGBtime,RGBhdr,\
         blendweightIRTF,IRTFstdv,IRTFfrac,IRTFtime,blendweightCH4889=\
-        ReadContiguousMap(LonSys,collection=collection,
+        read_fits_map_L4(LonSys,collection=collection,
                               collectionIRTF=IRTFcollection,
                               collection889CH4=CH4889collection)
 
+    ###########################################################################
+    # PLOT L4 BLENDED MAPS (fNH3, PCld, and IGB)
     fig1,fig2,axs1,axs2,fNH3_patch_mb,PCld_patch_mb,RGB_patch,tx_fNH3,tx_PCld,\
         fNH3low,fNH3high,PCldlow,PCldhigh,blendweightTime_patch,aspectratio,\
             RGB4Display,RGBaxs,plot_adjust=\
-                plot_optical_maps(LonLims,lats,
+                plot_optical_maps(LonLims,LatLims,
                               collection,blendweightfNH3,
                               blendweightPCloud,
                               blendweightfNH3time,
@@ -841,11 +846,23 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
                               fNH3frac,PCldfrac,RGBaxs,LonSys)
 
     if IRTFcollection:
-        plot_5u_map(blendweightIRTF,LonLims,lats,axs1,axs2,variance,IRTFfrac,IRTFaxs)
+        plot_5u_map(blendweightIRTF,LonLims,LatLims,axs1,axs2,variance,IRTFfrac,IRTFaxs)
 
     if CH4889collection:
     #if CH4889plot:
-        plot_JALPO_map(blendweightCH4889,LonLims,lats,axs1,axs2,variance,CH4889axs)
+        plot_JALPO_map(blendweightCH4889,LonLims,LatLims,axs1,axs2,variance,CH4889axs)
+
+    if L3style:
+
+        LonRng=LonLims[1]-LonLims[0]
+        PlotCM=np.mean(LonLims)
+        dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf=\
+            mas.map_and_scatter(fNH3_patch_mb,PCld_patch_mb,blendweightPCloud,blendweightfNH3time,LonSys,
+            LatLims,LonLims,LonRng,PlotCM,fnNH3,
+            coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
+            figxy,ctbls[1],path,"PCloud & fNH3 (contours)",
+            "PCloud vs fNH3",Level='L3',cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
+            axis_inv=True,ROI=ROI)
 
 
     ###########################################################################
@@ -853,7 +870,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     ###########################################################################
     if cont:
         ApplyContours(axs1,RGBaxs,fNH3_patch_mb,tx_fNH3,PCld_patch_mb,tx_PCld,
-                          lats,LonLims,IRTFcollection=False,IRTFaxs='',
+                          LatLims,LonLims,IRTFcollection=False,IRTFaxs='',
                           CH4889plot=False,CH4889axs='')
         
     axs1[RGBaxs].set_title('RGB Context',fontsize=10)
@@ -911,7 +928,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     if surfplot:
         msurf.map_cloudsurface(PCld_patch_mb,fNH3_patch_mb,RGB4Display,
                                False,False,False,
-                               '3',lats,[360-LonLims[1],360-LonLims[0]],
+                               LonSys,LatLims,[360-LonLims[1],360-LonLims[0]],
                                180,180,path)
 
     ###########################################################################
@@ -928,7 +945,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
             "PCloud": PCld_patch_mb,
             #"RGB": np.mean(RGB_patch,axis=2)
             "RGB":RGB_patch[:,:,0]
-        }, blendweightTime_patch, lats, LonLims)
+        }, blendweightTime_patch, LatLims, LonLims)
 
         output_filename=path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" extrema.csv"
         FX.export_extrema_to_csv(results_extrema, output_filename)
@@ -946,24 +963,24 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         Cloudthresh=1750
         NEDFthresh=1950
         fNH3_mask, labeled_fNH3, props_fNH3= \
-            FB.process_blob(fNH3_patch_mb, PCld_patch_mb, lats, LonLims, timearray=blendweightTime_patch,threshold_abs=NH3thresh, mode='max')
+            FB.process_blob(fNH3_patch_mb, PCld_patch_mb, LatLims, LonLims, timearray=blendweightTime_patch,threshold_abs=NH3thresh, mode='max')
         
         Plum_mask, labeled_Plum, props_Plum= \
-            FB.process_blob(PCld_patch_mb, fNH3_patch_mb, lats, LonLims, timearray=blendweightTime_patch, threshold_abs=Cloudthresh, mode='min')
+            FB.process_blob(PCld_patch_mb, fNH3_patch_mb, LatLims, LonLims, timearray=blendweightTime_patch, threshold_abs=Cloudthresh, mode='min')
         
         NEDF_mask, labeled_NEDF, props_NEDF= \
-            FB.process_blob(PCld_patch_mb, fNH3_patch_mb, lats, LonLims, timearray=blendweightTime_patch, threshold_abs=NEDFthresh, mode='max')
+            FB.process_blob(PCld_patch_mb, fNH3_patch_mb, LatLims, LonLims, timearray=blendweightTime_patch, threshold_abs=NEDFthresh, mode='max')
         
         FB.export_regions_to_csv(props_fNH3, path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs"+" fNH3.csv")
         FB.export_regions_to_csv(props_Plum, path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs"+" Plum.csv")
         FB.export_regions_to_csv(props_NEDF, path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs"+" NEDF.csv")
-        print("$$$$$$$$$$$$$$$$$$$$$$$$$",lats,LonLims)
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$",LatLims,LonLims)
 
-        FB.plot_regions_on_axis(axs1[2], labeled_fNH3, props_fNH3,lon_lims=LonLims,lats=lats,
+        FB.plot_regions_on_axis(axs1[2], labeled_fNH3, props_fNH3,lon_lims=LonLims,LatLims=LatLims,
                      plot_contours=False, plot_masks=True,plot_labels=False,contour_color='C0')
-        FB.plot_regions_on_axis(axs1[2], labeled_Plum, props_Plum,lon_lims=LonLims,lats=lats,
+        FB.plot_regions_on_axis(axs1[2], labeled_Plum, props_Plum,lon_lims=LonLims,LatLims=LatLims,
                      plot_contours=False, plot_masks=True,plot_labels=False, contour_color='white')
-        FB.plot_regions_on_axis(axs1[2], labeled_NEDF, props_NEDF,lon_lims=LonLims,lats=lats,
+        FB.plot_regions_on_axis(axs1[2], labeled_NEDF, props_NEDF,lon_lims=LonLims,LatLims=LatLims,
                      plot_contours=False, plot_masks=True,plot_labels=False, contour_color='black')
 
     fig1.savefig(path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" map.png",dpi=300)
@@ -1291,12 +1308,12 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
 
         #lats=[100,120]
         #lats=[80,100]
-        fNH3_patch_mb=MP.make_patch(blendweightfNH3,lats,[360-LonLims[1],360-LonLims[0]],
+        fNH3_patch_mb=MP.make_patch(blendweightfNH3,LatLims,[360-LonLims[1],360-LonLims[0]],
                                     180,180)
         print("######### cb=",cb)
         #plot_patch(patch,LatLims,LonLims,CM2,LonRng,colorscale,axis,
         #               cbarplot=True,cbar_title="Test",cbar_reverse=False,vn=0.10,vx=0.20,n=6)
-        fNH3_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(fNH3_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+        fNH3_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(fNH3_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,ctbls[0],
                                          axNH3,cbarplot=cb,n=11,
                                          vn=fNH3low,
@@ -1307,9 +1324,9 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         axNH3.tick_params('x', labelsize=8)
 
 
-        PCld_patch_mb=MP.make_patch(blendweightPCloud,lats,[360-LonLims[1],360-LonLims[0]],
+        PCld_patch_mb=MP.make_patch(blendweightPCloud,LatLims,[360-LonLims[1],360-LonLims[0]],
                                     180,180)
-        PCld_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(PCld_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+        PCld_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(PCld_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,ctbls[1],
                                          axCH4,cbarplot=cb,
                                          n=5,vn=PCldlow,vx=PCldhigh)
@@ -1320,12 +1337,12 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         axCH4.tick_params('x', labelsize=8)
 
            
-        RGB_patch=MP.make_patch(blendRGBweight,lats,[360-LonLims[1],360-LonLims[0]],180,180)
+        RGB_patch=MP.make_patch(blendRGBweight,LatLims,[360-LonLims[1],360-LonLims[0]],180,180)
         RGB4Display=np.power(np.array(RGB_patch).astype(float),1.0)
         #RGB4Display=RGB4Display/RGB4Display.max()
         show=axRGB.imshow(RGB4Display,
-                   extent=[LonLims[1],LonLims[0],90-lats[1],
-                           90-lats[0]],
+                   extent=[LonLims[1],LonLims[0],90-LatLims[1],
+                           90-LatLims[0]],
                            aspect="equal")
         axRGB.set_ylabel(collection.replace('-','\n'),rotation='horizontal',fontsize=6)
         axRGB.tick_params('y', labelleft=False)
@@ -1333,9 +1350,9 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         axRGB.tick_params('x', labelsize=8)
 
 
-        IRTF_patch_mb=MP.make_patch(blendweightIRTF,lats,[360-LonLims[1],360-LonLims[0]],
+        IRTF_patch_mb=MP.make_patch(blendweightIRTF,LatLims,[360-LonLims[1],360-LonLims[0]],
                                     180,180)
-        IRTF_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(np.log10(IRTF_patch_mb),lats,[360-LonLims[1],360-LonLims[0]],
+        IRTF_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(np.log10(IRTF_patch_mb),LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,"gist_heat",
                                          axIRTF,cbarplot=cb,
                                          n=5,vn=1.5,vx=3.5)
@@ -1350,9 +1367,9 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
             
 
 
-        CH4889_patch_mb=MP.make_patch(blendweightCH4889,lats,[360-LonLims[1],360-LonLims[0]],
+        CH4889_patch_mb=MP.make_patch(blendweightCH4889,LatLims,[360-LonLims[1],360-LonLims[0]],
                                     180,180)
-        CH4889_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(CH4889_patch_mb,lats,[360-LonLims[1],360-LonLims[0]],
+        CH4889_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(CH4889_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,"gray",
                                          axCH4889,cbarplot=cb,
                                          n=5,vn=80,vx=230)
@@ -1372,11 +1389,11 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
             FX.extrema_overplot_all(results_extrema,axes = {'axNH3': axNH3, 'axCH4': axCH4, 'axRGB': axRGB})
 
         if segment:
-            FB.plot_regions_on_axis(axRGB, labeled_fNH3, props_fNH3,lon_lims=LonLims,lats=lats,
+            FB.plot_regions_on_axis(axRGB, labeled_fNH3, props_fNH3,lon_lims=LonLims,LatLims=LatLims,
                          plot_contours=False, plot_masks=True,plot_labels=False,contour_color='C0')
-            FB.plot_regions_on_axis(axRGB, labeled_Plum, props_Plum,lon_lims=LonLims,lats=lats,
+            FB.plot_regions_on_axis(axRGB, labeled_Plum, props_Plum,lon_lims=LonLims,LatLims=LatLims,
                          plot_contours=False, plot_masks=True,plot_labels=False, contour_color='white')
-            FB.plot_regions_on_axis(axRGB, labeled_NEDF, props_NEDF,lon_lims=LonLims,lats=lats,
+            FB.plot_regions_on_axis(axRGB, labeled_NEDF, props_NEDF,lon_lims=LonLims,LatLims=LatLims,
                          plot_contours=False, plot_masks=True,plot_labels=False, contour_color='black')
 
     ###########################################################################
@@ -1388,11 +1405,11 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,LonSys)
     
     if segment:
-        return(lats,blendweightPCloud,blendweightfNH3,blendRGBweight,
+        return(LatLims,blendweightPCloud,blendweightfNH3,blendRGBweight,
                labeled_fNH3, props_fNH3, 
                 labeled_Plum, props_Plum, 
                 labeled_NEDF, props_NEDF)
     else:
-        return(lats,blendweightPCloud,blendweightfNH3,blendRGBweight)
+        return(LatLims,blendweightPCloud,blendweightfNH3,blendRGBweight)
     
     #return(fig1,axs1)
