@@ -1,5 +1,5 @@
 config_VA={
     1:"C:/Astronomy/Projects/SAS 2021 Ammonia/Data/L3 FITS/",
     2:"C:/Astronomy/Projects/SAS 2021 Ammonia/Data/Data V2/",
-    "H":"C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/SCubed 2025/"
+    "H":"C:/Astronomy/Projects/SAS 2021 Ammonia/Data/HST GO 18055/"
     }

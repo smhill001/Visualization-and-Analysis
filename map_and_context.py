@@ -28,8 +28,8 @@ def make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
 
 def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,LonLims,LonRng,PlotCM,
                     amfdata,coef,low,high,showbands,FiveMicron,figxy,ct,pathout,
-                    Level='L3',suptitle="Test",cbar_rev=False,cbar_title="Test",
-                    ROI=False):
+                    Level='L3',suptitle="Test",cbar_rev=False,cont=False,cbar_title="Test",
+                    ROI=False,smoothcont=0,dataversion=2):
     """
     PURPOSE:    To create a pair of plots, the right one representing a mapped
                 data set, e.g., ammonia abundance or cloud pressure, and the 
@@ -103,6 +103,8 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
     import make_patch_RGB as MPRGB
     import make_patch as MP
     import plot_contours_on_patch as PC
+    from scipy.ndimage import gaussian_filter
+
 
     ###########################################################################
     ## Just RGB and Abundance
@@ -127,13 +129,22 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
         axs1[ix].set_adjustable('box') 
 
     data_patch=MP.make_patch(mapdata,LatLims,LonLims,PlotCM,LonRng)
+    cbttl="Mean="+str(np.mean(data_patch))[:4]+" $\pm$ "+str(np.std(data_patch))[:3] \
+        +' Min '+str(np.min(data_patch))[:4]+' Max '+str(np.max(data_patch))[:4]+' Med '+str(np.median(data_patch))[:4]
+
     data_patch,vn,vx,tx=PP.plot_patch(data_patch,LatLims,LonLims,
                                      PlotCM,LonRng,ct,axs1[0],'%3.2f',
                                      n=6,vn=low,vx=high,
-                                     cbar_title=cbar_title,cbar_reverse=cbar_rev)
+                                     #cbar_title=cbar_title,cbar_reverse=cbar_rev)
+                                     cbar_title=cbttl,cbar_reverse=cbar_rev)
     
-    temp=PC.plot_contours_on_patch(axs1[0],data_patch,LatLims,LonLims,
-                           lvls=tx,frmt='%3.0f',clr='k')
+    if cont:
+        #temp=PC.plot_contours_on_patch(axs1[0],data_patch,LatLims,LonLims,
+        #                       lvls=tx,frmt='%3.0f',clr='k')
+        data_patchsmth = gaussian_filter(data_patch, sigma=smoothcont)
+        temp=PC.plot_contours_on_patch(axs1[0],data_patchsmth,LatLims,LonLims,
+                                       tx,frmt='%3.0f',clr='k')
+
     #Temporary comment while refactoring L3 and L4 plotting    
     #if maphdr["TELESCOP"]=="NASA IRTF":
     #    axs1[0].set_title("IRTF 5um Radiance (Log10(arb. units))",fontsize=10)
@@ -157,8 +168,13 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
                extent=[360-LonLims[0],360-LonLims[1],90-LatLims[1],
                        90-LatLims[0]],
                        aspect="equal")
-    temp=PC.plot_contours_on_patch(axs1[1],data_patch,LatLims,LonLims,
-                           tx,frmt='%3.0f',clr='k')
+    if cont:
+        #temp=PC.plot_contours_on_patch(axs1[1],data_patch,LatLims,LonLims,
+        #                       tx,frmt='%3.0f',clr='k')
+        data_patchsmth = gaussian_filter(data_patch, sigma=smoothcont)
+        temp=PC.plot_contours_on_patch(axs1[1],data_patchsmth,LatLims,LonLims,
+                                       tx,frmt='%3.0f',clr='k')
+
 
     if ROI:
         for R in ROI:
@@ -196,6 +212,7 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
         #axs1[1].annotate(zb,xy=[np.mean(zone[zb]),51],ha="center")
     
     axs1[1].tick_params(axis='both', which='major', labelsize=9)
+    print("context_title ",context_title)
     axs1[1].set_title(context_title,fontsize=10)
 
     axs1[0].set_ylabel("Planetographic Latitude (deg)",fontsize=10)
@@ -207,9 +224,11 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
                 wspace=0.25, hspace=0.05)     
     axs1[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 1.015, box.height * 1.015])
 
+    print("#filename,Level,LonSys,LatLims,LonLims=",filename,Level,LonSys,LatLims,LonLims)
     fnout=make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
                                  coef=0.0,FiveMicron=False)
-        
+    print("############# pathout=",pathout)
+    print("############# fnout=",fnout)
     fig1.savefig(pathout+fnout,dpi=300)
     
     return(data_patch,mapdata,tx,fnout,RGB4Display)

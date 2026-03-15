@@ -63,17 +63,19 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
             fnout=path+collection+" SCT Wave.png"
 
         fNH3_array=np.mean(fNH3_patch_mb[LatSlice[0]:LatSlice[1],:],axis=0)
-        Cld_array=np.mean(PCld_patch_mb[LatSlice[0]:LatSlice[1],:],axis=0)
+        PCld_array=np.mean(PCld_patch_mb[LatSlice[0]:LatSlice[1],:],axis=0)
 
-        shift_px, peak, snr = _xcorr1d_circular(1.0/(Cld_array/np.mean(Cld_array)),
+        shift_px, peak, snr = _xcorr1d_circular(1.0/(PCld_array/np.mean(PCld_array)),
                                                 fNH3_array/np.mean(fNH3_array))
         print("00000 shift_px, peak, snr=",shift_px, peak, snr)
-        axslc[i].plot(lon_array,fNH3_array,color='C2',label='fNH3')
-        #axslc[0].plot(lon_array,np.roll(fNH3_array0,10),color='C2',linestyle='dashed',linewidth=0.5)
-        axslc[i].plot(lon_array,np.roll(fNH3_array,-int(shift_px)),color='C0',
-                      alpha=0.3,label='fNH3 shifted '+str(-int(shift_px))+' deg')
+        #axslc[i].plot(lon_array,fNH3_array,color='C2',label='fNH3')
+        axslc[i].plot(lon_array,fNH3_array,color='C0',label='fNH3')
+        #Shifted fNH3
+        #axslc[i].plot(lon_array,np.roll(fNH3_array,-int(shift_px)),color='C0',
+        #              alpha=0.3,label='fNH3 shifted '+str(-int(shift_px))+' deg')
         axslcp=axslc[i].twinx()
-        axslcp.plot(lon_array,Cld_array,color='C0',label='PCld')
+        axslcp.plot(lon_array,PCld_array,color='k',label='PCld')
+        #axslcp.plot(lon_array,Cld_array,color='C2',label='PCld')
         axslc[i].set_ylim(fNH3minmax[0],fNH3minmax[1])
         axslcp.set_ylim(PCldminmax[0],PCldminmax[1])
         axslcp.invert_yaxis()
@@ -86,12 +88,19 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
         #yticklabels=np.array(np.linspace(-90,90,13))
         #axslc[i].set_yticklabels(yticklabels.astype(int))
         axslc[i].tick_params(axis='both', which='major', labelsize=8)
-        axslc[i].set_ylabel("fNH3 (ppm)",color='C2')
+        axslc[i].set_ylabel("fNH3 (ppm)",color='C0')
         #axslc0.set_ylabel("PCloud (mb)",color='C0')
         #axslc[i].set_adjustable('box')
-        axslc[i].set_xlim(360,0.)
+        
+        #axslc[i].set_xlim(360,0.)
+        axslc[i].set_xlim(360.-LonLims[0],360.-LonLims[1]) #For HST convention on LonLims
+        #axslc[i].set_xlim(LonLims[1],LonLims[0]) #For SCT convention on LonLims
+        #!!!! Need to fix LonLims conventions! SMH 3/9/2026
+        
+        dataout=np.flipud(np.column_stack([lon_array,fNH3_array,PCld_array]))
+        np.savetxt(fnout[:-4]+' '+str(LatSlices[i][1])+'-'+str(LatSlices[i][0])+'.csv', dataout, delimiter=',')
 
-    axslcp.set_ylabel("PCloud (mb)",color='C0')
+    axslcp.set_ylabel("PCloud (mb)",color='k')
     axslcp.tick_params(axis='both', which='major', labelsize=8)
     axslc[2].set_xlabel("System "+LonSys+" Longitude (deg)")
     
@@ -121,6 +130,7 @@ def figsize_and_aspect(lats,LonLims):
     time.sleep(5)
     aspect_ratio_map = {
                         2/3.:  [2.5, 6.0],
+                        3/4.:  [2.5, 6.0],
                         1:     [3.0, 6.0],
                         4/3.:  [3.5, 6.0],
                         3/2.:  [4.0, 6.0],
@@ -135,6 +145,7 @@ def figsize_and_aspect(lats,LonLims):
     #Aspect Ratio Customization
     adjust_params = {
     2/3.:  {'left': 0.21,  'bottom': 0.07, 'right': 0.79,  'top': 0.88,  'wspace': 0.0,  'hspace': 0.2},
+    3/4.:  {'left': 0.21,  'bottom': 0.07, 'right': 0.79,  'top': 0.88,  'wspace': 0.0,  'hspace': 0.2},
     1:     {'left': 0.21,  'bottom': 0.07, 'right': 0.79,  'top': 0.88,  'wspace': 0.0,  'hspace': 0.2},
     4/3.:  {'left': 0.20,  'bottom': 0.07, 'right': 0.825, 'top': 0.86,  'wspace': 0.0,  'hspace': 0.2},
     3/2.:  {'left': 0.20,  'bottom': 0.07, 'right': 0.825, 'top': 0.86,  'wspace': 0.0,  'hspace': 0.2},
@@ -183,223 +194,7 @@ def set_up_figure(figsz,collection,LonSys,RGBaxs=2):
 
     return fig1,axs1
 
-def read_fits_map_L4(LonSys,collection="20220904-20220905",
-                      collectionIRTF="20240205-20240205",
-                      collection889CH4="20240131-20240201"):
-    """
-    Retrieve continguous maps from FITS files for plotting and analysis.
-    
-    !!!Development notes: 
-    1) Currently assumes that fNH3, PCld, and RGB 'optical' data is always
-    provided. It could be useful to make that optional like the IRTF and 889-nm
-    data in order to generalize this function.
-    2) A helper function to read the m x n FITS files and perhaps the RGB file
-    could dramatically shorten this function and make it more readable.
-    
 
-    Parameters
-    ----------
-    LonSys : String
-        Indicates desired longitude system of map plot
-    collection : String, optional
-        The map collection label for contiguous map FITS files of fNH3, PCld,
-        and visual context
-    collectionIRTF : String, optional
-        The map collection label for contiguous map FITS file of 5-micron data
-    collection889CH4 : String, optional
-        The map collection label for contiguous map FITS file of 889-nm data
-
-    Returns
-    -------
-    fNH3data : float array
-        Cylindrically mapped mean ammonia mole fraction at each lat-lon in ppm.
-    fNH3stdv : float array
-        Cylindrically mapped fNH3 standard deviation at each lat-lon in ppm.
-    fNH3frac : float array
-        Cylindrically mapped fractional uncertainty in fNH3, e.g., 
-        fNH3stdv/fNH3data
-    fNH3time : float array
-        Cylindrically mapped mean fNH3 observation time at each lat-lon in JD(?).
-    PClddata : float array
-        Cylindrically mapped mean effective cloud pressure at each lat-lon in 
-        mbar.
-    PCldstdv : float array
-        Cylindrically mapped PCld standard deviation at each lat-lon in mbar.
-    PCldfrac : float array
-        Cylindrically mapped fractional uncertainty in PCld, e.g., 
-        PCldstdv/PClddata
-    PCldtime : float array
-        Cylindrically mapped mean PCld observation time at each lat-lon in JD(?).
-    RGBdata : TYPE
-        DESCRIPTION.
-    RGBstdv : TYPE
-        DESCRIPTION.
-    RGBfrac : TYPE
-        DESCRIPTION.
-    RGBtime : TYPE
-        DESCRIPTION.
-    IRTFdata : float array
-        Cylindrically mapped mean effective cloud pressure at each lat-lon in 
-        uncalibrated units.
-    IRTFstdv : float array
-        Cylindrically mapped IRTF standard deviation at each lat-lon in mbar.
-    IRTFfrac : float array
-        Cylindrically mapped fractional uncertainty in IRTF, e.g., 
-        IRTFstdv/IRTFdata
-    IRTFtime : float array
-        Cylindrically mapped mean IRTF observation time at each lat-lon in JD(?).
-    JALPOdata : TYPE
-        DESCRIPTION.
-
-    """
-    from astropy.io import fits
-    import os
-    import numpy as np
-    print()
-    print("############ IN READ Contiguous MAP")
-    print("####### LonSys,collection,IRTFcollection,CH4889collection",
-          LonSys,collection,collectionIRTF,collection889CH4)
-    print()
-
-    
-    cm_key = {
-        '1': 'CM1',
-        '2': 'CM2',
-        '3': 'CM3'#,
-        #'subobs':180
-    }.get(LonSys)
-    
-    ctype1_key = {
-        'Sys. 1 Longitude':'CM1',
-        'Sys. 2 Longitude':'CM2',
-        'Sys. 3 Longitude':'CM3',
-        }
-    
-    ###########################################################################
-    # Identify files to read
-    ###########################################################################
-    pathinp="C:/Astronomy/Projects/SAS 2021 Ammonia/Data/L4 FITS (cont maps)/"
-    contents = os.listdir(pathinp)
-    files_in_directory = [item for item in contents if os.path.isfile(os.path.join(pathinp, item))]
-    
-    fits_in_directory = [item for item in files_in_directory \
-                         if '.fits' in item ]  
-    collection_in_directory = [item for item in fits_in_directory \
-                         if collection in item]  
-    LonSys_in_directory = [item for item in collection_in_directory \
-                         if 'Sys'+LonSys in item]
-    print("############### LonSys_in_directory=",LonSys_in_directory)
-
-    ###########################################################################
-    # Read fNH3 data and 'roll' to desired longitude system (LonSys)
-    ###########################################################################
-    fNH3file = [item for item in LonSys_in_directory \
-                         if 'L4fNH3' in item]  
-    print("############### fNH3file=",fNH3file)
-    if len(fNH3file)>0:
-        print("############### fNH3file=",fNH3file[0])
-        fNH3hdulist=fits.open(pathinp+fNH3file[0])
-        fNH3hdulist.info()
-        fNH3hdr=fNH3hdulist[0].header
-        roll=int(fNH3hdr[ctype1_key[fNH3hdr['CTYPE1']]]-fNH3hdr[cm_key])
-        fNH3data=np.roll(fNH3hdulist[0].data,roll,axis=1)
-        fNH3stdv=np.roll(fNH3hdulist[1].data,roll,axis=1)
-        fNH3frac=np.roll(fNH3hdulist[2].data,roll,axis=1)
-        fNH3time=np.roll(fNH3hdulist[3].data,roll,axis=1)
-        fNH3hdulist.close()       
-        
-    ###########################################################################
-    # Read PCld data and 'roll' to desired longitude system (LonSys)
-    ###########################################################################
-    PCldfile = [item for item in LonSys_in_directory \
-                         if 'L4PCld' in item]      
-    if len(PCldfile)>0:
-        PCldhdulist=fits.open(pathinp+PCldfile[0])
-        PCldhdulist.info()
-        PCldhdr=PCldhdulist[0].header
-        roll=int(PCldhdr[ctype1_key[PCldhdr['CTYPE1']]]-PCldhdr[cm_key])
-        PClddata=np.roll(PCldhdulist[0].data,roll,axis=1)
-        PCldstdv=np.roll(PCldhdulist[1].data,roll,axis=1)
-        PCldfrac=np.roll(PCldhdulist[2].data,roll,axis=1)
-        PCldtime=np.roll(PCldhdulist[3].data,roll,axis=1)
-        PCldhdulist.close()
-        
-    ###########################################################################
-    # Read RGB data and 'roll' to desired longitude system (LonSys)
-    ###########################################################################
-    RGBfile = [item for item in LonSys_in_directory \
-                         if 'L4RGB' in item]      
-    if len(RGBfile)>0:
-        RGBhdulist=fits.open(pathinp+RGBfile[0])
-        RGBhdulist.info()
-        RGBhdr=RGBhdulist[0].header
-        roll=int(RGBhdr[ctype1_key[RGBhdr['CTYPE1']]]-RGBhdr[cm_key])
-        RGBdata=np.roll(RGBhdulist[0].data,roll,axis=1)
-        RGBstdv=np.roll(RGBhdulist[1].data,roll,axis=1)
-        RGBfrac=np.roll(RGBhdulist[2].data,roll,axis=1)
-        RGBtime=np.roll(RGBhdulist[3].data,roll,axis=1)
-        RGBhdulist.close()
-
-    ###########################################################################
-    # Read IRTF data and 'roll' to desired longitude system (LonSys)
-    ###########################################################################
-    if collectionIRTF:        
-        collectionIRTF_in_directory = [item for item in fits_in_directory \
-                             if collectionIRTF in item]  
-        IRTFfile = [item for item in collectionIRTF_in_directory \
-                             if 'L4IRTF' in item]      
-        if len(IRTFfile)>0:
-            print("############### IRTF Map=",IRTFfile)
-            IRTFhdulist=fits.open(pathinp+IRTFfile[0])
-            IRTFhdulist.info()
-            IRTFhdr=IRTFhdulist[0].header
-            roll=int(IRTFhdr['CM3']-IRTFhdr[cm_key])
-            IRTFdata=np.roll(IRTFhdulist[0].data,roll,axis=1)
-            IRTFstdv=np.roll(IRTFhdulist[1].data,roll,axis=1)
-            IRTFfrac=np.roll(IRTFhdulist[2].data,roll,axis=1)
-            IRTFtime=np.roll(IRTFhdulist[3].data,roll,axis=1)
-            IRTFhdulist.close()
-        else:
-            IRTFdata=np.zeros((180,360))
-            IRTFstdv=np.zeros((180,360))
-            IRTFfrac=np.zeros((180,360))
-            IRTFtime=np.zeros((180,360))       
-    else:
-        IRTFdata=np.zeros((180,360))
-        IRTFstdv=np.zeros((180,360))
-        IRTFfrac=np.zeros((180,360))
-        IRTFtime=np.zeros((180,360))
-
-    ###########################################################################
-    # Read 889-nm JALPO data and 'roll' to desired longitude system (LonSys)
-    ###########################################################################
-    if collection889CH4:
-        
-        collection889CH4_in_directory = [item for item in fits_in_directory \
-                             if collection889CH4 in item]  
-        JALPOfile = [item for item in collection889CH4_in_directory \
-                             if 'L4889CH4' in item]      
-        if len(JALPOfile)>0:
-            JALPOhdulist=fits.open(pathinp+JALPOfile[0])
-            JALPOhdulist.info()
-            JALPOhdr=JALPOhdulist[0].header
-            print("########### ",JALPOhdr['DATE-OBS'])
-            print("########### ",JALPOhdr['CM3'])
-            print("########### ",cm_key)
-    
-            roll=int(JALPOhdr['CM3'])-int(JALPOhdr[cm_key])
-            JALPOdata=np.roll(JALPOhdulist[0].data,roll,axis=1)
-            JALPOhdulist.close()
-        else:
-            JALPOdata=np.zeros((180,360))
-    else:
-        JALPOdata=np.zeros((180,360))
-    
-    return fNH3data,fNH3stdv,fNH3frac,fNH3time,fNH3hdr, \
-        PClddata,PCldstdv,PCldfrac,PCldtime,PCldhdr, \
-        RGBdata,RGBstdv,RGBfrac,RGBtime,RGBhdr, \
-        IRTFdata,IRTFstdv,IRTFfrac,IRTFtime, \
-        JALPOdata
 
 def plot_optical_maps(LonLims,LatLims,collection,blendweightfNH3,
                       blendweightPCloud,blendweightTime,blendRGBweight,
@@ -716,7 +511,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
                       axCH4889=False,axNH3vCloud=False,axNH3vIRTF=False,
                       axIRTFvPCld=False,ax889vPCld=False,counter=0,countmax=0,
                       waveplot=False,meridplot=False,CH4889plot=False,
-                      surfplot=False,L3style=False):
+                      surfplot=False,L3style=False,smoothcont=0,dataversion=2):
     """
     Main program for making plots of blended, contiguous maps, including
     analysis tools and overplotting
@@ -793,7 +588,9 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     import make_lat_lon_str as MLLS
     import matplotlib.pyplot as pl
     import map_cloudsurface as msurf
+    import map_and_context as mac
     import map_and_scatter as mas
+    import read_fits_V2 as RF2
 
     import sys
     sys.path.append('../Profiles/code')
@@ -828,7 +625,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         blendweightPCloud,PCldstdv,PCldfrac,blendweightPCldtime,PCldhdr,\
         blendRGBweight,RGBstdv,RGBfrac,RGBtime,RGBhdr,\
         blendweightIRTF,IRTFstdv,IRTFfrac,IRTFtime,blendweightCH4889=\
-        read_fits_map_L4(LonSys,collection=collection,
+        RF2.read_fits_map_L4(LonSys,collection=collection,
                               collectionIRTF=IRTFcollection,
                               collection889CH4=CH4889collection)
 
@@ -853,16 +650,61 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         plot_JALPO_map(blendweightCH4889,LonLims,LatLims,axs1,axs2,variance,CH4889axs)
 
     if L3style:
-
+        amfdata=1.0#(1.0/sza+1.0/eza)/2.0
+        coef=[0,0]
+        figxy=[8.0,4.0]
         LonRng=LonLims[1]-LonLims[0]
+        LonLimsMod=[360-LonLims[1],360-LonLims[0]]
         PlotCM=np.mean(LonLims)
+        showbands=False
+        FiveMicron=False #!!!! Will need to fix this when I start including 5-micron data again -SMH 3/13/2026
+        print(RGBhdr["DATE-OBS"][0:10]+'-'+ \
+            RGBhdr["DATE-OBS"][11:13]+RGBhdr["DATE-OBS"][14:16]+'_')
+        print("############## ",str(float(RGBhdr["DATE-OBS"][17:19])/60.)[2])
+        RGBtimeformated=RGBhdr["DATE-OBS"][0:10]+'-'+ \
+            RGBhdr["DATE-OBS"][11:13]+RGBhdr["DATE-OBS"][14:16]+'_'+ \
+                str(float(RGBhdr["DATE-OBS"][17:19])/60.)[2]
+        ###########################################################################
+        ## Just RGB and Abundance
+        ###########################################################################
+        #cbttl="Mean="+str(np.mean(fNH3_patch_mb))[:3]+" $\pm$ "+str(np.std(fNH3_patch_mb))[:2]
+        fNH3_patch_mb,TestfNH3,tx_fNH3,fnNH3,RGB4Display=mac.map_and_context(blendweightfNH3,
+                                                           fNH3hdr["DATE-OBS"],fNH3hdr["BUNIT"],fNH3hdr["FILENAME"],
+                                                           blendRGBweight,RGBtimeformated,
+                                                           LonSys,LatLims,LonLimsMod,
+                                                           LonRng,PlotCM,
+                                                           amfdata,coef[0],fNH3low,fNH3high,
+                                                           showbands,FiveMicron,figxy,
+                                                           ctbls[0],path,Level='L3',cont=cont,
+                                                           suptitle="Ammonia Mole Fraction",
+                                                           cbar_title="Ammonia Mole Fraction (ppm)",
+                                                           ROI=ROI,smoothcont=smoothcont)
+        
+    
+        ###########################################################################
+        ## Just RGB and Cloud Pressure
+        ###########################################################################
+        PCld_patch,TestPCld,tx_PCld,fnPCld,RGB4Display=mac.map_and_context(blendweightPCloud,
+                                                            PCldhdr["DATE-OBS"],PCldhdr["BUNIT"],PCldhdr["FILENAME"],
+                                                            blendRGBweight,RGBtimeformated,
+                                                            LonSys,LatLims,LonLimsMod,
+                                                            LonRng,PlotCM,
+                                                            amfdata,coef[1],PCldlow,PCldhigh,
+                                                            showbands,FiveMicron,figxy,
+                                                            ctbls[1],path,Level='L3',cont=cont,
+                                                            suptitle="Cloud Top Pressure",
+                                                            cbar_rev=True,
+                                                            cbar_title="Cloud Top Pressure (mb)",
+                                                            ROI=ROI,smoothcont=smoothcont)        
+
+        print("############### L4 fNH3_patch_mb,PCld_patch_mb= ",fNH3_patch_mb.shape,PCld_patch_mb.shape)
         dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf=\
-            mas.map_and_scatter(fNH3_patch_mb,PCld_patch_mb,blendweightPCloud,blendweightfNH3time,LonSys,
-            LatLims,LonLims,LonRng,PlotCM,fnNH3,
-            coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
-            figxy,ctbls[1],path,"PCloud & fNH3 (contours)",
-            "PCloud vs fNH3",Level='L3',cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
-            axis_inv=True,ROI=ROI)
+                mas.map_and_scatter(fNH3_patch_mb,PCld_patch,blendweightPCloud,blendweightfNH3time,LonSys,
+                LatLims,LonLimsMod,LonRng,PlotCM,fnNH3,
+                amfdata,coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
+                figxy,ctbls[1],path,"PCloud & fNH3 (contours)",
+                "PCloud vs fNH3",Level='L3',cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
+                axis_inv=True,ROI=ROI,cont=cont,dataversion=dataversion)
 
 
     ###########################################################################

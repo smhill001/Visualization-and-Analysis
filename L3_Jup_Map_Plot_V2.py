@@ -4,8 +4,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
                         LatLims=[45,135],LonRng=45,
                         CMpref='subobs',LonSys='2',showbands=False,
                         coef=[0.,0.],subproj='',figxy=[8.0,4.0],FiveMicron=False,
-                        ROI=False,ctbls=["terrain_r","Blues"],
-                        LimbCorrection=False,surfplot=False,dataversion=2):
+                        ROI=False,ctbls=["terrain_r","Blues"],cont=False,
+                        LimbCorrection=False,surfplot=False,dataversion=2,smoothcont=0):
     """
     Created on Sun Nov  6 16:47:21 2022
     
@@ -49,7 +49,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     import map_and_context as mac
     import map_and_scatter as mas
     import map_cloudsurface as msurf
-    import L4_Jup_Map_Plot_V2 as L4M
+    import read_fits_V2 as RF2
+    
 
     if ctbls[0]=="jet":
         fNH3low=60
@@ -61,6 +62,12 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
         fNH3high=160
         PCldlow=1600
         PCldhigh=2200
+    if dataversion=='H':
+        fNH3low=0
+        fNH3high=300
+        PCldlow=1000
+        PCldhigh=3000
+        
         
     micronlow=0.5
     micronhigh=3.5
@@ -82,8 +89,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
                                                         LimbCorrection=LimbCorrection,
                                                         dataversion=dataversion)
             elif dataversion=="H":
-                PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime= \
-                                RF2.read_fits_map_L3_VH(obskey=obskey,LonSys=LonSys,
+                PCldhdr,PClddata,fNH3hdr,fNH3data,RGB,RGB_CM,RGBtime= \
+                                RF2.read_fits_map_L3_V2(obskey=obskey,LonSys=LonSys,
                                                         imagetype="Map",Level="L3",
                                                         target=target,
                                                         LimbCorrection=LimbCorrection,
@@ -100,7 +107,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
             PClddata,PCldstdv,PCldfrac,blendweightPCldtime,PCldhdr,\
             RGB,RGBstdv,RGBfrac,RGBtimearray,RGBhdr, \
             blendweightIRTF,IRTFstdv,IRTFfrac,IRTFtime,blendweightCH4889=\
-            L4M.read_fits_map_L4(LonSys,collection=collection,
+            RF2.read_fits_map_L4(LonSys,collection=collection,
                                   collectionIRTF=False,
                                   collection889CH4=False)
         RGBtime=RGBhdr["DATE-OBS"]
@@ -157,6 +164,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     ###########################################################################
     ## Just RGB and Abundance
     ###########################################################################
+    #cbttl="Mean="+str(np.mean(fNH3_patch_mb))[:3]+" $\pm$ "+str(np.std(fNH3_patch_mb))[:2]
     fNH3_patch_mb,TestfNH3,tx_fNH3,fnNH3,RGB4Display=mac.map_and_context(fNH3data,
                                                        fNH3hdr["DATE-OBS"],fNH3hdr["BUNIT"],fNH3hdr["FILENAME"],
                                                        RGB,RGBtime,
@@ -164,10 +172,10 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
                                                        LonRng,fNH3PlotCM,
                                                        amfdata,coef[0],fNH3low,fNH3high,
                                                        showbands,FiveMicron,figxy,
-                                                       ctbls[0],pathmapplots,Level='L3',
+                                                       ctbls[0],pathmapplots,Level='L3',cont=cont,
                                                        suptitle="Ammonia Mole Fraction",
                                                        cbar_title="Ammonia Mole Fraction (ppm)",
-                                                       ROI=ROI)
+                                                       ROI=ROI,smoothcont=smoothcont,dataversion=dataversion)
     
 
     ###########################################################################
@@ -180,11 +188,11 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
                                                         LonRng,PCldPlotCM,
                                                         amfdata,coef[1],PCldlow,PCldhigh,
                                                         showbands,FiveMicron,figxy,
-                                                        ctbls[1],pathmapplots,Level='L3',
+                                                        ctbls[1],pathmapplots,Level='L3',cont=cont,
                                                         suptitle="Cloud Top Pressure",
                                                         cbar_rev=True,
                                                         cbar_title="Cloud Top Pressure (mb)",
-                                                        ROI=ROI)
+                                                        ROI=ROI,smoothcont=smoothcont,dataversion=dataversion)
 
     if surfplot:
         path="C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/"+subproj+"/"
@@ -214,11 +222,11 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf=\
         mas.map_and_scatter(fNH3_patch_mb,PCld_patch,PClddata,fNH3hdr['DATE-OBS'],LonSys,
         LatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
-        coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
+        amfdata,coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
         figxy,ctbls[1],pathmapplots,"PCloud & fNH3 (contours)",
         "PCloud vs fNH3",Level='L3',cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
-        axis_inv=True,ROI=ROI)
-    
+        axis_inv=True,ROI=ROI,cont=cont,smoothcont=smoothcont,dataversion=dataversion)
+        
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs 5um radiance)
     ###########################################################################

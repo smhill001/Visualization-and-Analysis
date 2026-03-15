@@ -1,9 +1,9 @@
 def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
                     LatLims,LonLims,LonRng,PlotCM,fnout,
-                    coef,txin,xlow,xhigh,ylow,yhigh,figxy,
-                    ct,pathout,Ltitle,Rtitle,Level='L3',FiveMicron=False,
+                    amfdata,coef,txin,xlow,xhigh,ylow,yhigh,figxy,
+                    ct,pathout,Ltitle,Rtitle,Level='L3',cont=False,FiveMicron=False,
                     cbar_rev=False,swap_xy=False,axis_inv=False,cbar_title="Test",
-                    suptitle="Test",ROI=False):
+                    suptitle="Test",ROI=False,smoothcont=0,dataversion=2):
     """
     PURPOSE:    Makes a pair of plots, the left one is a patch map of one data
                 set overlayed by another patch map data set. The right plot is
@@ -94,14 +94,16 @@ def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
     import copy
     import plot_map_scatter as pms
     import plot_roi_scatter as prs
+    from scipy.ndimage import gaussian_filter
 
+    print("############################ dataversion= ",dataversion)
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs fNH3)
     ###########################################################################
     fig3,axs3=pl.subplots(1,2,figsize=(figxy[0],figxy[1]), dpi=150, facecolor="white")
     #fig3.suptitle(suptitle,x=0.5,ha='center',color='k')
-    fig3.suptitle(dateobs.replace("_"," ")+", CM"+LonSys+"="
-                  +str(int(PlotCM)),x=0.5,ha='center',color='k')
+    #fig3.suptitle(dateobs.replace("_"," ")+", CM"+LonSys+"="
+    #              +str(int(PlotCM)),x=0.5,ha='center',color='k')
 
     axs3[0].grid(linewidth=0.2)
     axs3[0].ylim=[-45.,45.]
@@ -128,8 +130,10 @@ def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
                                      axs3[0],'%3.2f',
                                      cbar_reverse=cbar_rev,vn=ylow,vx=yhigh,n=6,
                                      cbar_title=cbar_title)
-    temp=PC.plot_contours_on_patch(axs3[0],patchx,LatLims,LonLims,
-                           txin,frmt='%3.0f',clr='k')
+    if cont:
+        patchxsmth = gaussian_filter(patchx, sigma=smoothcont)
+        temp=PC.plot_contours_on_patch(axs3[0],patchxsmth,LatLims,LonLims,
+                                       txin,frmt='%3.0f',clr='k')
 
     if coef==0.0:
         correction='_C0'
@@ -144,21 +148,26 @@ def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
     
     if swap_xy and not ROI:
         roilabel,mean1,stdv1,mean2,stdv2,BZ=pms.plot_map_scatter(patchx,patchy,PlotCM,
-                 LatLims,axs3[1],xlow,xhigh,ylow,yhigh,FiveMicron,axis_inv=axis_inv)
+                 LatLims,axs3[1],xlow,xhigh,ylow,yhigh,FiveMicron,axis_inv=axis_inv,dataversion=dataversion)
+        print("Case 1")
     if not swap_xy and not ROI:     
         roilabel,mean1,stdv1,mean2,stdv2,BZ=pms.plot_map_scatter(patchy,patchx,PlotCM,
-                 LatLims,axs3[1],ylow,yhigh,xlow,xhigh,FiveMicron,axis_inv=axis_inv)
-        
+                 LatLims,axs3[1],ylow,yhigh,xlow,xhigh,FiveMicron,axis_inv=axis_inv,dataversion=dataversion)
+        print("Case 2")
+    
+    print("##################### mean1,stdv1,mean2,stdv2= ",mean1,stdv1,mean2,stdv2)
+    print("##################### np.mean(patchx),np.mean(patchy)= ",np.mean(patchx),np.mean(patchy))
+    
     if swap_xy and ROI:
         print("Calling ROI")
         roilabel,mean1,stdv1,mean2,stdv2=prs.plot_roi_scatter(patchx,patchy,PlotCM,
                  LatLims,LonLims,axs3[1],xlow,xhigh,ylow,yhigh,FiveMicron,
-                 axis_inv=axis_inv,ROI=ROI,amfpatch=amfpatch)
+                 axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,dataversion=dataversion)
     if not swap_xy and ROI:    
         print("Calling ROI")
         roilabel,mean1,stdv1,mean2,stdv2,meanamf=prs.plot_roi_scatter(patchy,patchx,PlotCM,
                  LatLims,LonLims,axs3[1],ylow,yhigh,xlow,xhigh,FiveMicron,
-                 axis_inv=axis_inv,ROI=ROI,amfpatch=amfpatch)
+                 axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,dataversion=dataversion)
         
         
     axs3[1].tick_params(axis='both', which='major', labelsize=9)
@@ -222,7 +231,7 @@ def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
     axs3[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 0.5, box.height * 1.015])    
     fig3.subplots_adjust(left=0.12, right=0.97, top=0.83, bottom=0.18, 
                          wspace=0.4)
-    fig3.savefig(pathout+fnout,dpi=300)
+    fig3.savefig(pathout+fnout[:-4]+' scatter.png',dpi=300)
     
     if not ROI:
         meanamf=False

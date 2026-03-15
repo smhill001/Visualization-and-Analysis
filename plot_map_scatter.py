@@ -1,5 +1,6 @@
 def plot_map_scatter(patch1,patch2,Real_CM2,LatLims,axscor,PCldlow,PCldhigh,
-                 fNH3low,fNH3high,FiveMicron,axis_inv=False,Bands=False):
+                 fNH3low,fNH3high,FiveMicron,axis_inv=False,Bands=False,
+                 dataversion=2):
     """
     PURPOSE:    Takes two map patches and makes a scatter plot
     CALLS:      n/a
@@ -88,18 +89,31 @@ def plot_map_scatter(patch1,patch2,Real_CM2,LatLims,axscor,PCldlow,PCldhigh,
             print("do nothing")
         else:
             print(patch2.shape,patch1.shape)
-            axscor.scatter(patch2[BZind[key][1]:BZind[key][0],:],
-                           patch1[BZind[key][1]:BZind[key][0],:],
-                           marker="o",s=3.0,
-                           alpha=0.8,label=key)
-            mean1.append(np.mean(patch1[BZind[key][1]:BZind[key][0],:]))
-            mean2.append(np.mean(patch2[BZind[key][1]:BZind[key][0],:]))
-            stdv1.append(np.std(patch1[BZind[key][1]:BZind[key][0],:]))
-            stdv2.append(np.std(patch2[BZind[key][1]:BZind[key][0],:]))
+            if dataversion=='H':
+                axscor.scatter(patch2[BZind[key][1]*20:BZind[key][0]*20,:],
+                               patch1[BZind[key][1]*20:BZind[key][0]*20,:],
+                               marker=".",s=0.1,linewidths=0,
+                               alpha=1.0,label=key)
+                mean1.append(np.mean(patch1[BZind[key][1]*20:BZind[key][0]*20,:]))
+                mean2.append(np.mean(patch2[BZind[key][1]*20:BZind[key][0]*20,:]))
+                stdv1.append(np.std(patch1[BZind[key][1]*20:BZind[key][0]*20,:]))
+                stdv2.append(np.std(patch2[BZind[key][1]*20:BZind[key][0]*20,:]))
+            else:
+                print("##################")
+                print(patch2.shape,patch1.shape)
+                print()
+                axscor.scatter(patch2[BZind[key][1]:BZind[key][0],:],
+                               patch1[BZind[key][1]:BZind[key][0],:],
+                               marker="o",s=3.0,
+                               alpha=0.8,label=key)
+                mean1.append(np.mean(patch1[BZind[key][1]:BZind[key][0],:]))
+                mean2.append(np.mean(patch2[BZind[key][1]:BZind[key][0],:]))
+                stdv1.append(np.std(patch1[BZind[key][1]:BZind[key][0],:]))
+                stdv2.append(np.std(patch2[BZind[key][1]:BZind[key][0],:]))
             keylabel.append(key)
 
             print("mean1,mean2",mean1,mean2)
-     
+    print("mean(patch1),mean(patch2)= ",np.mean(patch1),np.mean(patch2)) 
     axscor.grid(linewidth=0.2)
     axscor.set_ylim(PCldlow,PCldhigh)
     axscor.set_xlim(fNH3low,fNH3high)
@@ -111,7 +125,7 @@ def plot_map_scatter(patch1,patch2,Real_CM2,LatLims,axscor,PCldlow,PCldhigh,
     else:
         axscor.set_xlabel("Ammonia Mole Fraction (ppm)",fontsize=10)
                     
-    axscor.legend(fontsize=7,ncols=4)
+    axscor.legend(fontsize=7,ncols=4,labelcolor='mfc')
     
     return(keylabel,mean1,stdv1,mean2,stdv2,BZ)
   
