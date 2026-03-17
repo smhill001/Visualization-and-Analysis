@@ -1,5 +1,5 @@
 def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
-                    LatLims,LonLims,LonRng,PlotCM,fnout,
+                    LatLims,LonLimsWest,LonRng,PlotCM,fnout,
                     amfdata,coef,txin,xlow,xhigh,ylow,yhigh,figxy,
                     ct,pathout,Ltitle,Rtitle,Level='L3',cont=False,FiveMicron=False,
                     cbar_rev=False,swap_xy=False,axis_inv=False,cbar_title="Test",
@@ -97,6 +97,8 @@ def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
     from scipy.ndimage import gaussian_filter
 
     print("############################ dataversion= ",dataversion)
+    LonLimsEast=[360-LonLimsWest[1],360-LonLimsWest[0]]
+
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs fNH3)
     ###########################################################################
@@ -107,7 +109,7 @@ def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
 
     axs3[0].grid(linewidth=0.2)
     axs3[0].ylim=[-45.,45.]
-    axs3[0].xlim=[360-LonLims[0],360-LonLims[1]]
+    axs3[0].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
     axs3[0].set_xticks(np.linspace(450,0,31), minor=False)
     xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
     axs3[0].set_xticklabels(xticklabels.astype(int))
@@ -120,19 +122,19 @@ def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
     axs3[0].set_adjustable('box') 
     axs3[1].set_adjustable('box') 
 
-    #Pcloud_patch,vn,vx,tx=PP.plot_patch(PClouddata,LatLims,NH3LonLims,
+    #Pcloud_patch,vn,vx,tx=PP.plot_patch(PClouddata,LatLims,NH3LonLimsEast,
     #                                 PCldPlotCM,LonRng,"jet",
     #                                 axs2[0],'%3.2f',cont=False,
     #                                 cbar_reverse=True,vn=400,vx=900,n=6)
-    Testy_patch=MP.make_patch(mapydata,LatLims,LonLims,PlotCM,LonRng)
-    Testy_patch,vn,vx,tx=PP.plot_patch(Testy_patch,LatLims,LonLims,
+    Testy_patch=MP.make_patch(mapydata,LatLims,LonLimsEast,PlotCM,LonRng)
+    Testy_patch,vn,vx,tx=PP.plot_patch(Testy_patch,LatLims,LonLimsEast,
                                      PlotCM,LonRng,ct,
                                      axs3[0],'%3.2f',
                                      cbar_reverse=cbar_rev,vn=ylow,vx=yhigh,n=6,
                                      cbar_title=cbar_title)
     if cont:
         patchxsmth = gaussian_filter(patchx, sigma=smoothcont)
-        temp=PC.plot_contours_on_patch(axs3[0],patchxsmth,LatLims,LonLims,
+        temp=PC.plot_contours_on_patch(axs3[0],patchxsmth,LatLims,LonLimsEast,
                                        txin,frmt='%3.0f',clr='k')
 
     if coef==0.0:
@@ -161,12 +163,12 @@ def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
     if swap_xy and ROI:
         print("Calling ROI")
         roilabel,mean1,stdv1,mean2,stdv2=prs.plot_roi_scatter(patchx,patchy,PlotCM,
-                 LatLims,LonLims,axs3[1],xlow,xhigh,ylow,yhigh,FiveMicron,
+                 LatLims,LonLimsEast,axs3[1],xlow,xhigh,ylow,yhigh,FiveMicron,
                  axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,dataversion=dataversion)
     if not swap_xy and ROI:    
         print("Calling ROI")
         roilabel,mean1,stdv1,mean2,stdv2,meanamf=prs.plot_roi_scatter(patchy,patchx,PlotCM,
-                 LatLims,LonLims,axs3[1],ylow,yhigh,xlow,xhigh,FiveMicron,
+                 LatLims,LonLimsEast,axs3[1],ylow,yhigh,xlow,xhigh,FiveMicron,
                  axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,dataversion=dataversion)
         
         
@@ -218,10 +220,10 @@ def map_and_scatter(patchx,patchy,mapydata,dateobs,LonSys,
             if BZind[key][0]>1.0 or BZind[key][1]<0.0:
                 print("do nothing")
             else:
-                axs3[0].axvspan(360-LonLims[0],360-LonLims[0]-1,
+                axs3[0].axvspan(360-LonLimsEast[0],360-LonLimsEast[0]-1,
                                 ymin=BZind[key][1],ymax=BZind[key][0],alpha=1.0,
                                 color=clr)
-                axs3[0].axvspan(360-LonLims[1],360-LonLims[1]+1,
+                axs3[0].axvspan(360-LonLimsEast[1],360-LonLimsEast[1]+1,
                                 ymin=BZind[key][1],ymax=BZind[key][0],alpha=1.0,
                                 color=clr)
                 

@@ -22,7 +22,8 @@ def surface_helper(fig3d,ax3d,LonSys,Lons,Lats,zmin,zmax,title):
 
 def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
                      HDRCld,HDRfNH3,timeRGB,
-                     LonSys,LatLims,LonLims,LonRng,PlotCM,pathout):
+                     LonSys,LatLims,LonLims,LonRng,PlotCM,pathout,
+                     dataversion=2):
 
     import sys
     drive='c:'
@@ -42,8 +43,13 @@ def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
     fig3dNH3, ax3dNH3 = pl.subplots(1,figsize=(12,8),subplot_kw={"projection": "3d"})
     
     # Make data.
-    Lons = np.arange(360-LonLims[0],360-LonLims[1],-1.0)
-    Lats = np.arange(90-LatLims[0],90-LatLims[1], -1.0)
+    if dataversion==1 or dataversion==2:
+        Lons = np.arange(360-LonLims[0],360-LonLims[1],-1.0)
+        Lats = np.arange(90-LatLims[0],90-LatLims[1], -1.0)
+    elif dataversion=='H': ##!!!!!!! Need to work on this
+        Lons = np.arange(360-LonLims[0],360-LonLims[1],-0.05)
+        Lats = np.arange(90-LatLims[0],90-LatLims[1], -0.05)
+        
     zmin=1000.
     zmax=2500.
     print(Lats)

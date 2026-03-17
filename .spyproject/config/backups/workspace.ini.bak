@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['L4_Jup_Map_Plot_V2.py', 'L3_Jup_Map_Plot_V2.py', '..\\Jupiter_NH3_Analysis_P3\\Services\\make_L4_cont_maps.py', 'config_VA.py', 'L4_map_script.py', 'read_fits_V2.py', '..\\Jupiter_NH3_Analysis_P3\\HST\\read_HST_GO.py']
+recent_files = ['L3_Jup_Map_Plot_V2.py', 'L4_Jup_Map_Plot_V2.py', 'map_and_context.py', 'map_and_scatter.py', 'read_fits_V2.py', '..\\Jupiter_NH3_Analysis_P3\\Services\\make_L4_cont_maps.py', 'config_VA.py', 'L4_map_script.py', '..\\Jupiter_NH3_Analysis_P3\\HST\\SCubed2025.py', '..\\Jupiter_NH3_Analysis_P3\\HST\\read_HST_GO.py', '..\\Jupiter_NH3_Analysis_P3\\Maps\\PlanetMapper_Test.py']
 
 [main]
 version = 0.2.0

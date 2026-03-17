@@ -26,7 +26,7 @@ def make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
     return fnout
 
 
-def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,LonLims,LonRng,PlotCM,
+def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,LonLimsWest,LonRng,PlotCM,
                     amfdata,coef,low,high,showbands,FiveMicron,figxy,ct,pathout,
                     Level='L3',suptitle="Test",cbar_rev=False,cont=False,cbar_title="Test",
                     ROI=False,smoothcont=0,dataversion=2):
@@ -105,6 +105,7 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
     import plot_contours_on_patch as PC
     from scipy.ndimage import gaussian_filter
 
+    LonLimsEast=[360-LonLimsWest[1],360-LonLimsWest[0]]
 
     ###########################################################################
     ## Just RGB and Abundance
@@ -119,7 +120,7 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
     for ix in range(0,1):
         axs1[ix].grid(linewidth=0.2)
         axs1[ix].ylim=[-45.,45.]
-        axs1[ix].xlim=[360-LonLims[0],360-LonLims[1]]
+        axs1[ix].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
         axs1[ix].set_xticks(np.linspace(450,0,31), minor=False)
         xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
         axs1[ix].set_xticklabels(xticklabels.astype(int))
@@ -128,11 +129,11 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
 
         axs1[ix].set_adjustable('box') 
 
-    data_patch=MP.make_patch(mapdata,LatLims,LonLims,PlotCM,LonRng)
+    data_patch=MP.make_patch(mapdata,LatLims,LonLimsEast,PlotCM,LonRng)
     cbttl="Mean="+str(np.mean(data_patch))[:4]+" $\pm$ "+str(np.std(data_patch))[:3] \
         +' Min '+str(np.min(data_patch))[:4]+' Max '+str(np.max(data_patch))[:4]+' Med '+str(np.median(data_patch))[:4]
 
-    data_patch,vn,vx,tx=PP.plot_patch(data_patch,LatLims,LonLims,
+    data_patch,vn,vx,tx=PP.plot_patch(data_patch,LatLims,LonLimsEast,
                                      PlotCM,LonRng,ct,axs1[0],'%3.2f',
                                      n=6,vn=low,vx=high,
                                      #cbar_title=cbar_title,cbar_reverse=cbar_rev)
@@ -142,7 +143,7 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
         #temp=PC.plot_contours_on_patch(axs1[0],data_patch,LatLims,LonLims,
         #                       lvls=tx,frmt='%3.0f',clr='k')
         data_patchsmth = gaussian_filter(data_patch, sigma=smoothcont)
-        temp=PC.plot_contours_on_patch(axs1[0],data_patchsmth,LatLims,LonLims,
+        temp=PC.plot_contours_on_patch(axs1[0],data_patchsmth,LatLims,LonLimsEast,
                                        tx,frmt='%3.0f',clr='k')
 
     #Temporary comment while refactoring L3 and L4 plotting    
@@ -160,19 +161,19 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
 
     #Logic in RGB_patch depends on LonLims and CM being consistent
     #RGB_patch=MPRGB.make_patch_RGB(RGB,LatLims,LonLims,PlotCM,LonRng)
-    RGB_patch=MP.make_patch(RGB,LatLims,LonLims,PlotCM,LonRng)
+    RGB_patch=MP.make_patch(RGB,LatLims,LonLimsEast,PlotCM,LonRng)
     
     RGB4Display=np.power(np.array(RGB_patch).astype(float),gamma)
     RGB4Display=RGB4Display/RGB4Display.max()
     show=axs1[1].imshow(RGB4Display,
-               extent=[360-LonLims[0],360-LonLims[1],90-LatLims[1],
+               extent=[360-LonLimsEast[0],360-LonLimsEast[1],90-LatLims[1],
                        90-LatLims[0]],
                        aspect="equal")
     if cont:
         #temp=PC.plot_contours_on_patch(axs1[1],data_patch,LatLims,LonLims,
         #                       tx,frmt='%3.0f',clr='k')
         data_patchsmth = gaussian_filter(data_patch, sigma=smoothcont)
-        temp=PC.plot_contours_on_patch(axs1[1],data_patchsmth,LatLims,LonLims,
+        temp=PC.plot_contours_on_patch(axs1[1],data_patchsmth,LatLims,LonLimsEast,
                                        tx,frmt='%3.0f',clr='k')
 
 
@@ -203,9 +204,9 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
     if showbands:
         for zb in belt:
             #print(zb,belt[zb])
-            axs1[0].fill_between([360-LonLims[0],360-LonLims[1]],[belt[zb][0],belt[zb][0]],[belt[zb][1],belt[zb][1]],
+            axs1[0].fill_between([360-LonLimsEast[0],360-LonLimsEast[1]],[belt[zb][0],belt[zb][0]],[belt[zb][1],belt[zb][1]],
                                     color="0.5",alpha=0.2)
-            axs1[1].fill_between([360-LonLims[0],360-LonLims[1]],[belt[zb][0],belt[zb][0]],[belt[zb][1],belt[zb][1]],
+            axs1[1].fill_between([360-LonLimsEast[0],360-LonLimsEast[1]],[belt[zb][0],belt[zb][0]],[belt[zb][1],belt[zb][1]],
                                     color="0.8",alpha=0.1)
         #axs1[1].annotate(zb,xy=[np.mean(belt[zb]),51],ha="center")
     #for zb in zone:
@@ -224,8 +225,8 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
                 wspace=0.25, hspace=0.05)     
     axs1[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 1.015, box.height * 1.015])
 
-    print("#filename,Level,LonSys,LatLims,LonLims=",filename,Level,LonSys,LatLims,LonLims)
-    fnout=make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
+    print("#filename,Level,LonSys,LatLims,LonLimsEast=",filename,Level,LonSys,LatLims,LonLimsEast)
+    fnout=make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLimsEast,
                                  coef=0.0,FiveMicron=False)
     print("############# pathout=",pathout)
     print("############# fnout=",fnout)

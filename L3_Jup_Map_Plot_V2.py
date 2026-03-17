@@ -1,29 +1,30 @@
 from config_VA import config_VA
 
-def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
-                        LatLims=[45,135],LonRng=45,
+def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
+                        CoLatLims=[45,135],LonRng=45,
                         CMpref='subobs',LonSys='2',showbands=False,
                         coef=[0.,0.],subproj='',figxy=[8.0,4.0],FiveMicron=False,
-                        ROI=False,ctbls=["terrain_r","Blues"],cont=False,
-                        LimbCorrection=False,surfplot=False,dataversion=2,smoothcont=0):
+                        plotoptions=["contours","surface"],
+                        ROI=False,
+                        LimbCorrection=False,dataversion=2,smoothcont=0):
     """
     Created on Sun Nov  6 16:47:21 2022
     
-    PURPOSE: Create maps of environmental parameters paired with RGB context
+    PURPOSE: Create MAPS of environmental parameters paired with RGB context
              maps. Based on Retrieve_Jup_Atm_2022_P3, which ALSO performed
              the calibration phase. So now I've separated that module into 
              a calibration module, make_L3_env_data.py and this plotting
              module.
              
     EXAMPLES:
-        Map_Jup_Atm_P3(obskey="20240925UTa",imagetype='Map',target="Jupiter",
-                                LatLims=[45,135],LonRng=45,
+        Map_Jup_Atm_P3(obskey="20240925UTa",
+                                CoLatLims=[45,135],LonRng=45,
                                 CMpref='subobs',LonSys='2',showbands=False,
                                 coef=[0.,0.],subproj='',figxy=[8.0,4.0],
                                 FiveMicron=False)
         
-        Map_Jup_Atm_P3(obskey="20240730UTa",imagetype='Map',target="Jupiter",
-                                LatLims=[45,135],LonRng=45,
+        Map_Jup_Atm_P3(obskey="20240730UTa",
+                                CoLatLims=[45,135],LonRng=45,
                                 CMpref='subobs',LonSys='2',showbands=False,
                                 coef=[0.,0.],subproj='',figxy=[8.0,4.0],
                                 FiveMicron=True)
@@ -50,14 +51,9 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     import map_and_scatter as mas
     import map_cloudsurface as msurf
     import read_fits_V2 as RF2
-    
-
-    if ctbls[0]=="jet":
-        fNH3low=60
-        fNH3high=160
-        PCldlow=1200
-        PCldhigh=2000
-    if ctbls[0]=="terrain_r":
+    import L4_Jup_Map_Plot_V2 as L4M    
+    ctbls=["terrain_r","Blues"]
+    if  dataversion==1 or dataversion==2:
         fNH3low=60
         fNH3high=160
         PCldlow=1600
@@ -68,7 +64,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
         PCldlow=1000
         PCldhigh=3000
         
-        
     micronlow=0.5
     micronhigh=3.5
     print("############### len(obskey)= ",len(obskey))
@@ -76,7 +71,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
         if (not FiveMicron) or FiveMicron=="png":
             if dataversion==2:
                 PCldhdr,PClddata,fNH3hdr,fNH3data,RGB,RGB_CM,RGBtime= \
-                                RF2.read_fits_map_L3_V2(obskey=obskey,imagetype="Map",
+                                RF2.read_fits_map_L3_V2(obskey=obskey,
                                                         target=target,Level="L3",
                                                         LonSys=LonSys,
                                                         LimbCorrection=LimbCorrection,
@@ -84,14 +79,14 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
             elif dataversion==1:
                 PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime= \
                                 RF2.read_fits_map_L3_V1(obskey=obskey,LonSys=LonSys,
-                                                        imagetype="Map",Level="L3",
+                                                        Level="L3",
                                                         target=target,
                                                         LimbCorrection=LimbCorrection,
                                                         dataversion=dataversion)
             elif dataversion=="H":
                 PCldhdr,PClddata,fNH3hdr,fNH3data,RGB,RGB_CM,RGBtime= \
                                 RF2.read_fits_map_L3_V2(obskey=obskey,LonSys=LonSys,
-                                                        imagetype="Map",Level="L3",
+                                                        Level="L3",
                                                         target=target,
                                                         LimbCorrection=LimbCorrection,
                                                         dataversion=dataversion)
@@ -115,7 +110,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     #elif FiveMicron=="fits":
     #    PCldhdr,PClddata,fNH3hdr,fNH3data,sza,eza,RGB,RGB_CM,RGBtime,micronhdr,microndatar= \
     #                    RFM.read_fits_map_L2_L3(obskey=obskey,LonSys=LonSys,
-    #                                            imagetype="Map",Level="L3",
+    #                                            Level="L3",
     #                                            target=target,FiveMicron=FiveMicron)
                     
     pathmapplots='C:/Astronomy/Projects/SAS 2021 Ammonia/Data/L3 Plots/'+subproj+'/'
@@ -154,12 +149,14 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     else:
         fNH3PlotCM=CMpref
         PCldPlotCM=CMpref
-    NH3LonLims=[360-int(fNH3PlotCM+LonRng),360-int(fNH3PlotCM-LonRng)]
+    NH3LonLims=[fNH3PlotCM-LonRng,fNH3PlotCM+LonRng]
+    print("###################################################################")
     print("#######fNH3PlotCM=",fNH3PlotCM)
     print("fNH3PlotCM+LonRng,fNH3PlotCM-LonRng=",fNH3PlotCM+LonRng,fNH3PlotCM-LonRng)
     print("#######NH3LonLims=",NH3LonLims)
     print("#######360-NH3LonLims=",360-np.array(NH3LonLims))
-    #amfpatch=MP.make_patch(amfdata,LatLims,NH3LonLims,fNH3PlotCM,LonRng,pad=True)
+    print("###################################################################")
+    #amfpatch=MP.make_patch(amfdata,CoLatLims,NH3LonLims,fNH3PlotCM,LonRng,pad=True)
 
     ###########################################################################
     ## Just RGB and Abundance
@@ -168,11 +165,11 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     fNH3_patch_mb,TestfNH3,tx_fNH3,fnNH3,RGB4Display=mac.map_and_context(fNH3data,
                                                        fNH3hdr["DATE-OBS"],fNH3hdr["BUNIT"],fNH3hdr["FILENAME"],
                                                        RGB,RGBtime,
-                                                       LonSys,LatLims,NH3LonLims,
+                                                       LonSys,CoLatLims,NH3LonLims,
                                                        LonRng,fNH3PlotCM,
                                                        amfdata,coef[0],fNH3low,fNH3high,
                                                        showbands,FiveMicron,figxy,
-                                                       ctbls[0],pathmapplots,Level='L3',cont=cont,
+                                                       ctbls[0],pathmapplots,Level='L3',cont=("contours" in plotoptions),
                                                        suptitle="Ammonia Mole Fraction",
                                                        cbar_title="Ammonia Mole Fraction (ppm)",
                                                        ROI=ROI,smoothcont=smoothcont,dataversion=dataversion)
@@ -184,22 +181,27 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     PCld_patch,TestPCld,tx_PCld,fnPCld,RGB4Display=mac.map_and_context(PClddata,
                                                         PCldhdr["DATE-OBS"],PCldhdr["BUNIT"],PCldhdr["FILENAME"],
                                                         RGB,RGBtime,
-                                                        LonSys,LatLims,NH3LonLims,
+                                                        LonSys,CoLatLims,NH3LonLims,
                                                         LonRng,PCldPlotCM,
                                                         amfdata,coef[1],PCldlow,PCldhigh,
                                                         showbands,FiveMicron,figxy,
-                                                        ctbls[1],pathmapplots,Level='L3',cont=cont,
+                                                        ctbls[1],pathmapplots,Level='L3',cont=("contours" in plotoptions),
                                                         suptitle="Cloud Top Pressure",
                                                         cbar_rev=True,
                                                         cbar_title="Cloud Top Pressure (mb)",
                                                         ROI=ROI,smoothcont=smoothcont,dataversion=dataversion)
 
-    if surfplot:
+    if "surface" in plotoptions:
         path="C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/"+subproj+"/"
         msurf.map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
                                PCldhdr,fNH3hdr,RGBtime,
-                               LonSys,LatLims,[360-NH3LonLims[1],360-NH3LonLims[0]],
-                               180,180,path)
+                               LonSys,CoLatLims,[360-NH3LonLims[1],360-NH3LonLims[0]],
+                               180,180,path,dataversion=dataversion)
+        
+    if "wave" in plotoptions:
+        L4M.RossbyWavePlot(obskey,NH3LonLims,fNH3_patch_mb,PCld_patch,[6,6],
+                           pathmapplots,LonSys,dataversion=dataversion)
+
 
     ###########################################################################
     ## Just RGB and 5 micron
@@ -207,7 +209,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     if FiveMicron:
         micron_patch,Testmicron,tx_micron,fn5um=mac.map_and_context(np.log10(microndatar),micronhdr,
                                                           RGB,RGBtime,
-                                                          LonSys,LatLims,NH3LonLims,
+                                                          LonSys,CoLatLims,NH3LonLims,
                                                           LonRng,PCldPlotCM,
                                                           amfdata,0.0,micronlow,micronhigh,
                                                           showbands,FiveMicron,figxy,
@@ -219,20 +221,24 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     ###########################################################################
     ## Compute Band or ROI Scatter Plot (PCloud vs fNH3)
     ###########################################################################
-    dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf=\
-        mas.map_and_scatter(fNH3_patch_mb,PCld_patch,PClddata,fNH3hdr['DATE-OBS'],LonSys,
-        LatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
-        amfdata,coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
-        figxy,ctbls[1],pathmapplots,"PCloud & fNH3 (contours)",
-        "PCloud vs fNH3",Level='L3',cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
-        axis_inv=True,ROI=ROI,cont=cont,smoothcont=smoothcont,dataversion=dataversion)
+    if "scatter" in plotoptions:
+        dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf=\
+            mas.map_and_scatter(fNH3_patch_mb,PCld_patch,PClddata,fNH3hdr['DATE-OBS'],LonSys,
+            CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
+            amfdata,coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
+            figxy,ctbls[1],pathmapplots,"PCloud & fNH3 (contours)",
+            "PCloud vs fNH3",Level='L3',cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
+            axis_inv=True,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
+        ROIout={obskey:{'dateobs':dateobs,'roilabel':roilabel,'mean1':mean1,'stdv1':stdv1,
+                'mean2':mean2,'stdv2':stdv2,'meanamf':meanamf}}
+        print("############### ROIout= ",ROIout)
         
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs 5um radiance)
     ###########################################################################
     if FiveMicron:
         mas.map_and_scatter(PCld_patch,micron_patch,np.log10(microndatar),fNH3hdr,LonSys,
-                        LatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
+                        CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
                         coef[1],tx_PCld,PCldlow,PCldhigh,micronlow,micronhigh,
                         figxy,"gist_heat",pathmapplots,"5um Radiance & PCloud (contours)",
                         "PCloud vs 5um Radiance",Level='L3',FiveMicron=True,cbar_rev=False,swap_xy=True,
@@ -243,7 +249,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
     ###########################################################################
     if FiveMicron:
         mas.map_and_scatter(fNH3_patch_mb,micron_patch,np.log10(microndatar),fNH3hdr,LonSys,
-                        LatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
+                        CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
                         0.0,tx_fNH3,fNH3low,fNH3high,micronlow,micronhigh,
                         figxy,"gist_heat",pathmapplots,"fNH3 vs 5um Radiance",
                         "5um Radiance & fNH3 (contours)",Level='L3',FiveMicron=True,
@@ -251,10 +257,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",imagetype='Map',target="Jupiter",
                         axis_inv=True,cbar_title="Log10(5um radiance)")
    
     #return(fig1,axs1,fig2,axs2,fig3,axs3)
-    ROIout={obskey:{'dateobs':dateobs,'roilabel':roilabel,'mean1':mean1,'stdv1':stdv1,
-            'mean2':mean2,'stdv2':stdv2,'meanamf':meanamf}}
-    print("############### ROIout= ",ROIout)
-    return(ROIout)
+    if "scatter" in plotoptions:
+        return(ROIout)
     #return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf)
 
 

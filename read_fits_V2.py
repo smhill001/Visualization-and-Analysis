@@ -43,7 +43,12 @@ def read_fits_L3_V2_helper(pathandfile,target="Jupiter",LonSys='3',
         dataobj['data']=dataobj['data']*(amfdata**exponent[dataobj['hdr']['BUNIT']])
         
     print(dataobj['data'].shape)
-    dataobj['datar']=deepcopy(np.roll(dataobj['data'],int(dataobj['hdr']['CM3']-dataobj['hdr']['CM'+LonSys]),axis=1))
+    if dataversion==1 or dataversion==2:
+        dataobj['datar']=deepcopy(np.roll(dataobj['data'],int(dataobj['hdr']['CM3']-dataobj['hdr']['CM'+LonSys]),axis=1))
+    elif dataversion=='H':
+        #dataobj['datar']=deepcopy(np.roll(dataobj['data'],20*int(dataobj['hdr']['CM3']-dataobj['hdr']['CM'+LonSys]),axis=1))
+        #!!!! Below is for customization requiring that HST data be read from a FITS file of the same LonSys as will be plotted
+        dataobj['datar']=deepcopy(np.roll(dataobj['data'],20*int(dataobj['hdr']['CM'+LonSys]-dataobj['hdr']['CM'+LonSys]),axis=1))
     """
     fig1,axs1=pl.subplots(1,figsize=(3,6), dpi=150, facecolor="white")
     fig2,axs2=pl.subplots(1,figsize=(3,6), dpi=150, facecolor="white")
@@ -72,16 +77,35 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
     pathin=config_VA[dataversion]
     #pathSci=pathin+"New_Results/"+obskey[:-1]+"/"+obskey+"/"+Level+'/'
     pathSci=pathin+"/"+obskey[:-1]+"/"+obskey+"/"+Level+'/'
-    filesSci=os.listdir(pathSci)
+    filesSciTemp=os.listdir(pathSci)
+    print("############## filesSciTemp= ",filesSciTemp)
+
+    filesSci=[]
+    print("######## dataversion=",dataversion)
+    if dataversion=='H':
+        for fn in filesSciTemp:
+            if 'Sys'+LonSys in fn:
+                filesSci.append(fn)
+    else:
+        filesSci=filesSciTemp
     #pathIGB=pathin+'New_Results/'+obskey[:-1]+'/'+obskey+'/L1/'
     pathIGB=pathin+'/'+obskey[:-1]+'/'+obskey+'/L1/'
-    filesIGB=os.listdir(pathIGB)
+    filesIGBTemp=os.listdir(pathIGB)
+    filesIGB=[]
+    if dataversion=='H':
+        for fn in filesIGBTemp:
+            if 'Sys'+LonSys in fn:
+                filesIGB.append(fn)
+    else:
+        filesIGB=filesIGBTemp
 
     sciobjects={'PCld':[],'fNH3':[]}
     if dataversion==2:
         RGBobjects={'NIR':[],'GRN':[],'BLU':[]}
     elif dataversion=='H':
         RGBobjects={'673':[],'502':[],'395':[]}
+
+    print("############## filesSci= ",filesSci)
 
     for key in sciobjects: 
         filename=[item for item in filesSci if key in item][0]

@@ -33,7 +33,7 @@ def ApplyContours(axs1,RGBaxs,fNH3_patch_mb,tx_fNH3,PCld_patch_mb,tx_PCld,
                                         tx_PCld[:5], frmt='%3.0f', clr='r')
 
 def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
-                   LonSys,HST=False):
+                   LonSys,dataversion=2):
 
     import sys
     sys.path.append('C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Winds/')
@@ -50,9 +50,9 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
     LatSlices=np.array([[11,8],[10,6],[6,3]])
     for i in range(0,3):
         LatSlice=15-LatSlices[i,:]
-        if HST:
+        if dataversion=='H':
             LatSlice=LatSlice*20
-            lon_array=np.arange(LonLims[1],LonLims[0],-0.05)+200
+            lon_array=np.arange(LonLims[1],LonLims[0],-0.05)#+200
             PCldminmax=[1000,3000]
             fNH3minmax=[0,300]
             fnout=path+collection+" HST Wave.png"
@@ -64,7 +64,8 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
 
         fNH3_array=np.mean(fNH3_patch_mb[LatSlice[0]:LatSlice[1],:],axis=0)
         PCld_array=np.mean(PCld_patch_mb[LatSlice[0]:LatSlice[1],:],axis=0)
-
+        
+        #!!!!!!!!! autocorrelated shift
         shift_px, peak, snr = _xcorr1d_circular(1.0/(PCld_array/np.mean(PCld_array)),
                                                 fNH3_array/np.mean(fNH3_array))
         print("00000 shift_px, peak, snr=",shift_px, peak, snr)
@@ -73,6 +74,7 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
         #Shifted fNH3
         #axslc[i].plot(lon_array,np.roll(fNH3_array,-int(shift_px)),color='C0',
         #              alpha=0.3,label='fNH3 shifted '+str(-int(shift_px))+' deg')
+        
         axslcp=axslc[i].twinx()
         axslcp.plot(lon_array,PCld_array,color='k',label='PCld')
         #axslcp.plot(lon_array,Cld_array,color='C2',label='PCld')
@@ -83,19 +85,10 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
         axslcp.legend(fontsize=8,loc='upper right',frameon=False)
     
         axslc[i].grid(linewidth=0.2)
-        #axslc[i].set_xticks(np.linspace(450.,0.,31), minor=False)
-        #axslc[i].set_yticks(np.linspace(-90,90,13), minor=False)
-        #yticklabels=np.array(np.linspace(-90,90,13))
-        #axslc[i].set_yticklabels(yticklabels.astype(int))
         axslc[i].tick_params(axis='both', which='major', labelsize=8)
         axslc[i].set_ylabel("fNH3 (ppm)",color='C0')
-        #axslc0.set_ylabel("PCloud (mb)",color='C0')
-        #axslc[i].set_adjustable('box')
-        
-        #axslc[i].set_xlim(360,0.)
-        axslc[i].set_xlim(360.-LonLims[0],360.-LonLims[1]) #For HST convention on LonLims
-        #axslc[i].set_xlim(LonLims[1],LonLims[0]) #For SCT convention on LonLims
-        #!!!! Need to fix LonLims conventions! SMH 3/9/2026
+
+        axslc[i].set_xlim(LonLims[1],LonLims[0]) #For SCT convention on LonLims
         
         dataout=np.flipud(np.column_stack([lon_array,fNH3_array,PCld_array]))
         np.savetxt(fnout[:-4]+' '+str(LatSlices[i][1])+'-'+str(LatSlices[i][0])+'.csv', dataout, delimiter=',')
@@ -108,18 +101,12 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
     axslc[1].set_title("6-10 deg PG Latitude - Plumes",fontsize=10)
     axslc[2].set_title("3-6 deg PG Latitude - NH3 Features",fontsize=10)
     
-    #xticklabels=np.array(np.linspace(195,15,13))
-    #print(xticklabels)
-    #axslc[2].set_xticklabels(xticklabels.astype(int))
-    #axslc[2].invert_xaxis()
     Rossby=np.sin((lon_array+30)*9*np.pi/180.)*20+100
-    #print(lon_array)
     #axslc[0].plot(lon_array,Rossby,color='k')
 
     figlc.subplots_adjust(bottom=0.07,top=0.92,left=0.10,right=0.90)
     
     figlc.savefig(fnout,dpi=150)
-    #Autocorrelation (below) doesn't work well due to differing shapes
 
 
 def figsize_and_aspect(lats,LonLims):
@@ -653,8 +640,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         amfdata=1.0#(1.0/sza+1.0/eza)/2.0
         coef=[0,0]
         figxy=[8.0,4.0]
-        LonRng=LonLims[1]-LonLims[0]
-        LonLimsMod=[360-LonLims[1],360-LonLims[0]]
+        LonRng=(LonLims[1]-LonLims[0])/2.
         PlotCM=np.mean(LonLims)
         showbands=False
         FiveMicron=False #!!!! Will need to fix this when I start including 5-micron data again -SMH 3/13/2026
@@ -671,7 +657,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         fNH3_patch_mb,TestfNH3,tx_fNH3,fnNH3,RGB4Display=mac.map_and_context(blendweightfNH3,
                                                            fNH3hdr["DATE-OBS"],fNH3hdr["BUNIT"],fNH3hdr["FILENAME"],
                                                            blendRGBweight,RGBtimeformated,
-                                                           LonSys,LatLims,LonLimsMod,
+                                                           LonSys,LatLims,LonLims,
                                                            LonRng,PlotCM,
                                                            amfdata,coef[0],fNH3low,fNH3high,
                                                            showbands,FiveMicron,figxy,
@@ -687,7 +673,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         PCld_patch,TestPCld,tx_PCld,fnPCld,RGB4Display=mac.map_and_context(blendweightPCloud,
                                                             PCldhdr["DATE-OBS"],PCldhdr["BUNIT"],PCldhdr["FILENAME"],
                                                             blendRGBweight,RGBtimeformated,
-                                                            LonSys,LatLims,LonLimsMod,
+                                                            LonSys,LatLims,LonLims,
                                                             LonRng,PlotCM,
                                                             amfdata,coef[1],PCldlow,PCldhigh,
                                                             showbands,FiveMicron,figxy,
@@ -700,7 +686,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         print("############### L4 fNH3_patch_mb,PCld_patch_mb= ",fNH3_patch_mb.shape,PCld_patch_mb.shape)
         dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf=\
                 mas.map_and_scatter(fNH3_patch_mb,PCld_patch,blendweightPCloud,blendweightfNH3time,LonSys,
-                LatLims,LonLimsMod,LonRng,PlotCM,fnNH3,
+                LatLims,LonLims,LonRng,PlotCM,fnNH3,
                 amfdata,coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
                 figxy,ctbls[1],path,"PCloud & fNH3 (contours)",
                 "PCloud vs fNH3",Level='L3',cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
@@ -1243,7 +1229,15 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     # YET ANOTHER SECTION: LONGITUDINAL CUTS!
     #!!!! Need to make MAPS! then use profiles modules to extract this!
     ###########################################################################
+    print("Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello Hello ")
     if waveplot:
+        print("###################################################################")
+        print("#######PlotCM=",PlotCM)
+        print("PlotCM+LonRng,PlotCM-LonRng=",PlotCM+LonRng,PlotCM-LonRng)
+        print("#######LonLims=",LonLims)
+        print("#######360-NH3LonLims=",360-np.array(LonLims))
+        print("###################################################################")
+
         RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,LonSys)
     
     if segment:
