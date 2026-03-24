@@ -1,5 +1,54 @@
 from config_VA import config_VA
 
+import numpy as np
+from scipy.signal import convolve2d
+import plot_patch as pp
+import matplotlib.pyplot as pl
+
+def rolling_corr2d(A, B, wdeg,dataversion=2):
+    
+    if dataversion=='H':
+        w=int(wdeg*20)
+    else:
+        w=int(wdeg*2)
+
+    kernel = np.ones((w, w))
+    N = w * w
+
+    sumA  = convolve2d(A, kernel, mode='same', boundary='symm')
+    sumB  = convolve2d(B, kernel, mode='same', boundary='symm')
+
+    sumA2 = convolve2d(A*A, kernel, mode='same', boundary='symm')
+    sumB2 = convolve2d(B*B, kernel, mode='same', boundary='symm')
+
+    sumAB = convolve2d(A*B, kernel, mode='same', boundary='symm')
+
+    numerator = N*sumAB - sumA*sumB
+
+    denomA = N*sumA2 - sumA**2
+    denomB = N*sumB2 - sumB**2
+
+    denom = np.sqrt(denomA * denomB)
+
+    r = numerator / denom
+
+    return r
+
+def residual_2d(A,B):
+    
+    mean_A = np.mean(A)
+    amp_A = np.max(np.abs(A - mean_A))
+    norm_A = (A - mean_A) / amp_A
+    
+    mean_B = np.mean(B)
+    amp_B = np.max(np.abs(B - mean_B))
+    norm_B = (B - mean_B) / amp_B
+    
+    resid_AB=norm_A-norm_B
+    
+    return norm_A,norm_B,resid_AB
+
+
 def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                         CoLatLims=[45,135],LonRng=45,
                         CMpref='subobs',LonSys='2',showbands=False,
@@ -49,6 +98,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     import make_patch as MP
     import map_and_context as mac
     import map_and_scatter as mas
+    import map_and_scatter_SCubed as masc
     import map_cloudsurface as msurf
     import read_fits_V2 as RF2
     import L4_Jup_Map_Plot_V2 as L4M    
@@ -221,18 +271,67 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     ###########################################################################
     ## Compute Band or ROI Scatter Plot (PCloud vs fNH3)
     ###########################################################################
+    #mas.map_and_scatter(fNH3_patch_mb,PCld_patch,PClddata,fNH3hdr['DATE-OBS'],LonSys,
+
     if "scatter" in plotoptions:
-        dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf=\
-            mas.map_and_scatter(fNH3_patch_mb,PCld_patch,PClddata,fNH3hdr['DATE-OBS'],LonSys,
+        dateobs,roilabel,mean1,stdv1,mean2,stdv2= \
+            masc.map_and_scatter_SCubed(fNH3_patch_mb,PCld_patch,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
             CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
             amfdata,coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
             figxy,ctbls[1],pathmapplots,"PCloud & fNH3 (contours)",
             "PCloud vs fNH3",Level='L3',cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
             axis_inv=True,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
         ROIout={obskey:{'dateobs':dateobs,'roilabel':roilabel,'mean1':mean1,'stdv1':stdv1,
-                'mean2':mean2,'stdv2':stdv2,'meanamf':meanamf}}
+                'mean2':mean2,'stdv2':stdv2}}#,'meanamf':meanamf}}
         print("############### ROIout= ",ROIout)
         
+    if 'resid' in plotoptions:
+        LonLimsEast=[360-NH3LonLims[1],360-NH3LonLims[0]]
+
+        figrc,axsrc=pl.subplots(2,1,figsize=(5,5), dpi=150, facecolor="white",
+                                sharex=True,sharey=True)
+        figrc.suptitle(obskey+" Normalized Residuals")
+
+        for i in [0,1]:
+            axsrc[i].grid(linewidth=0.2)
+            axsrc[i].ylim=[-45.,45.]
+            axsrc[i].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
+            axsrc[i].set_xticks(np.linspace(450,0,31), minor=False)
+            xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
+            axsrc[i].set_xticklabels(xticklabels.astype(int))
+            axsrc[i].set_yticks(np.linspace(-45,45,7), minor=False)
+            axsrc[i].tick_params(axis='both', which='major', labelsize=9)
+            axsrc[i].set_ylabel("PG Lat. (deg)",fontsize=10)
+            #axsrc[0].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
+        axsrc[0].set_title("Normalized Residual",fontsize=10)
+        axsrc[1].set_title("Box Correlation (5x5 deg)",fontsize=10)
+
+
+        norm_A,norm_B,resid_AB=residual_2d(fNH3_patch_mb,PCld_patch)
+        if dataversion=='H':
+            vn,vx=-0.6,0.6
+        else:
+            vn,vx=-1.0,1.0
+        pp.plot_patch(resid_AB,CoLatLims,LonLimsEast,PCldPlotCM,LonRng,'BrBG',axsrc[0],
+                   cbarplot=True,cbar_title="Test",cbar_reverse=False,vn=vn,vx=vx,n=6)
+        
+        if 'correl' in plotoptions:
+            #figc,axsc=pl.subplots(1,figsize=(5,5), dpi=150, facecolor="white")
+            #figc.suptitle(obskey+" Correlation")
+    
+            cc2d=rolling_corr2d(norm_A,norm_B,5,dataversion=dataversion)
+            print("########### cc2d.shape= ",cc2d.shape,np.max(cc2d))
+            pp.plot_patch(cc2d,CoLatLims,LonLimsEast,PCldPlotCM,LonRng,'seismic_r',axsrc[1],
+                       cbarplot=True,cbar_title="Test",cbar_reverse=False,vn=-1.0,vx=1.0,n=6,alpha=0.7)
+            
+        if ROI:
+            for R in ROI:
+                for i in [0,1]:
+                    axsrc[i].plot(np.array([ROI[R][2]+ROI[R][3],ROI[R][2]-ROI[R][3],
+                                  ROI[R][2]-ROI[R][3],ROI[R][2]+ROI[R][3],
+                                  ROI[R][2]+ROI[R][3]]),
+                                  90.-np.array([ROI[R][0],ROI[R][0],ROI[R][1],
+                                  ROI[R][1],ROI[R][0]]))
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs 5um radiance)
     ###########################################################################

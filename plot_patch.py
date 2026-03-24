@@ -1,5 +1,5 @@
 def plot_patch(patch,LatLims,LonLims,CM2,LonRng,colorscale,axis,
-               cbarplot=True,cbar_title="Test",cbar_reverse=False,vn=0.10,vx=0.20,n=6):
+               cbarplot=True,cbar_title="Test",cbar_reverse=False,vn=0.10,vx=0.20,n=6,alpha=1.0):
     """
     Purpose:
         To plot a map patch with appropriate latitude and longitude scales,
@@ -48,7 +48,7 @@ def plot_patch(patch,LatLims,LonLims,CM2,LonRng,colorscale,axis,
     show=axis.imshow(patch, colorscale, origin='upper',vmin=vn,vmax=vx,  
                extent=[360-LonLims[0],360-LonLims[1],90-LatLims[1],
                        90-LatLims[0]],
-                       aspect="equal")
+                       aspect="equal",alpha=alpha)
 
     im_ratio = patch.shape[0]/patch.shape[1]
     if cbarplot:

@@ -33,7 +33,7 @@ def ApplyContours(axs1,RGBaxs,fNH3_patch_mb,tx_fNH3,PCld_patch_mb,tx_PCld,
                                         tx_PCld[:5], frmt='%3.0f', clr='r')
 
 def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
-                   LonSys,dataversion=2):
+                   LonSys,dataversion=2,boxcorrdegrees=5):
 
     import sys
     sys.path.append('C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Winds/')
@@ -42,13 +42,17 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
     from matplotlib import pyplot as pl
     from Winds_1D_Zonal import _xcorr1d_circular
 
-    figlc,axslc=pl.subplots(3,1,figsize=(figsz[0],figsz[1]), dpi=150, facecolor="white",
-                          sharex=True)
-    figlc.suptitle(collection)
 
     # Assumes 15N - 15S range 
     LatSlices=np.array([[11,8],[10,6],[6,3]])
+    Features=['Hot Spots','Cloud Plumes','NH3 Gyres']
     for i in range(0,3):
+
+        figlc,axslc=pl.subplots(3,1,figsize=(figsz[0],figsz[1]), dpi=150, facecolor="white",
+                              sharex=True)
+        figlc.suptitle(collection)
+
+
         LatSlice=15-LatSlices[i,:]
         if dataversion=='H':
             LatSlice=LatSlice*20
@@ -56,11 +60,14 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
             PCldminmax=[1000,3000]
             fNH3minmax=[0,300]
             fnout=path+collection+" HST Wave.png"
+            hw_box = boxcorrdegrees*10 # 5deg = 50 pixel hw_box (2.5 deg then 2x)
         else:
             lon_array=np.arange(LonLims[1],LonLims[0],-1)
             PCldminmax=[1400,2400]
             fNH3minmax=[50,200]
             fnout=path+collection+" SCT Wave.png"
+            hw_box = boxcorrdegrees
+
 
         fNH3_array=np.mean(fNH3_patch_mb[LatSlice[0]:LatSlice[1],:],axis=0)
         PCld_array=np.mean(PCld_patch_mb[LatSlice[0]:LatSlice[1],:],axis=0)
@@ -70,36 +77,76 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
                                                 fNH3_array/np.mean(fNH3_array))
         print("00000 shift_px, peak, snr=",shift_px, peak, snr)
         #axslc[i].plot(lon_array,fNH3_array,color='C2',label='fNH3')
-        axslc[i].plot(lon_array,fNH3_array,color='C0',label='fNH3')
+        axslc[0].plot(lon_array,fNH3_array,color='C0',label='fNH3')
         #Shifted fNH3
         #axslc[i].plot(lon_array,np.roll(fNH3_array,-int(shift_px)),color='C0',
         #              alpha=0.3,label='fNH3 shifted '+str(-int(shift_px))+' deg')
         
-        axslcp=axslc[i].twinx()
-        axslcp.plot(lon_array,PCld_array,color='k',label='PCld')
+        axslcp0=axslc[0].twinx()
+        axslcp0.plot(lon_array,PCld_array,color='k',label='PCld')
         #axslcp.plot(lon_array,Cld_array,color='C2',label='PCld')
-        axslc[i].set_ylim(fNH3minmax[0],fNH3minmax[1])
-        axslcp.set_ylim(PCldminmax[0],PCldminmax[1])
-        axslcp.invert_yaxis()
-        axslc[i].legend(fontsize=8,loc='upper left',ncol=2,frameon=False)
-        axslcp.legend(fontsize=8,loc='upper right',frameon=False)
+        axslc[0].set_ylim(fNH3minmax[0],fNH3minmax[1])
+        axslcp0.set_ylim(PCldminmax[0],PCldminmax[1])
+        axslcp0.invert_yaxis()
+        axslc[0].legend(fontsize=8,loc='upper left',ncol=2,frameon=False)
+        axslcp0.legend(fontsize=8,loc='upper right',frameon=False)
     
-        axslc[i].grid(linewidth=0.2)
-        axslc[i].tick_params(axis='both', which='major', labelsize=8)
-        axslc[i].set_ylabel("fNH3 (ppm)",color='C0')
+        axslc[0].grid(linewidth=0.2)
+        axslc[0].tick_params(axis='both', which='major', labelsize=8)
+        axslc[0].set_ylabel("fNH3 (ppm)",color='C0')
 
-        axslc[i].set_xlim(LonLims[1],LonLims[0]) #For SCT convention on LonLims
+        axslc[0].set_xlim(LonLims[1],LonLims[0]) #For SCT convention on LonLims
         
         dataout=np.flipud(np.column_stack([lon_array,fNH3_array,PCld_array]))
         np.savetxt(fnout[:-4]+' '+str(LatSlices[i][1])+'-'+str(LatSlices[i][0])+'.csv', dataout, delimiter=',')
 
-    axslcp.set_ylabel("PCloud (mb)",color='k')
-    axslcp.tick_params(axis='both', which='major', labelsize=8)
+        axslcp0.set_ylabel("PCloud (mb)",color='k')
+        axslcp0.tick_params(axis='both', which='major', labelsize=8)
+        axslc[0].set_title(str(LatSlices[i][1])+"-"+str(LatSlices[i][0])+"deg PG Latitude: "+Features[i],fontsize=10)
+        #axslc[1].set_title("6-10 deg PG Latitude - Plumes",fontsize=10)
+        #axslc[2].set_title("3-6 deg PG Latitude - NH3 Features",fontsize=10)
+        
+        #COMPUTE MEANS AND RESIDUALS
+        mean_fNH3 = np.mean(fNH3_array)
+        amp_fNH3 = np.max(np.abs(fNH3_array - mean_fNH3))
+        norm_fnh3 = (fNH3_array - mean_fNH3) / amp_fNH3
+        
+        mean_PCld = np.mean(PCld_array)
+        amp_PCld = np.max(np.abs(PCld_array - mean_PCld))
+        norm_PCld = (PCld_array - mean_PCld) / amp_PCld
+        
+        axslc[1].plot(lon_array,norm_fnh3,color='C0',label='fNH3 Normalized')
+        axslcp1=axslc[1].twinx()
+        axslcp1.plot(lon_array,norm_PCld,color='k',label='PCld')
+        axslc[1].set_ylim(-1.0,1.0)
+        axslcp1.set_ylim(-1.0,1.0)
+        axslc[1].tick_params(axis='both', which='major', labelsize=8)
+        axslcp1.tick_params(axis='both', which='major', labelsize=8)
+
+        resid = norm_fnh3 - norm_PCld
+        
+        nLons = len(lon_array) # number of columns
+        
+        n_steps = nLons - 2*hw_box
+        cc = []#np.array(n_steps)
+        
+        for i in range(n_steps):
+            cc.append(np.correlate(norm_fnh3[(i):(i+2*hw_box)], norm_PCld[(i):(i+2*hw_box)]))
+        
+        print("########## len(cc), np.max(np.abs(cc)= ",len(cc), np.max(np.abs(cc)))
+        cc_norm = cc / np.max(np.abs(cc))
+
+        axslc[2].plot(lon_array,resid,color='C0',label='Residual (fNH3-PCld)')
+        axslc[2].fill_between(lon_array,resid,color='C0',alpha=0.2)
+        axslcp2=axslc[2].twinx()
+        axslcp2.plot(lon_array[hw_box:(-hw_box)],cc_norm,color='k',label='Corr.coeff.')
+        axslc[2].set_ylim(-1.0,1.0)
+        axslcp2.set_ylim(-1.0,1.0)
+        axslc[2].tick_params(axis='both', which='major', labelsize=8)
+        axslcp2.tick_params(axis='both', which='major', labelsize=8)
+
+
     axslc[2].set_xlabel("System "+LonSys+" Longitude (deg)")
-    
-    axslc[0].set_title("8-11 deg PG Latitude - NEDFs",fontsize=10)
-    axslc[1].set_title("6-10 deg PG Latitude - Plumes",fontsize=10)
-    axslc[2].set_title("3-6 deg PG Latitude - NH3 Features",fontsize=10)
     
     Rossby=np.sin((lon_array+30)*9*np.pi/180.)*20+100
     #axslc[0].plot(lon_array,Rossby,color='k')

@@ -1,5 +1,6 @@
 def plot_roi_scatter(patch1,patch2,Real_CM2,LatLims,LonLims,axscor,PCldlow,PCldhigh,
-                 fNH3low,fNH3high,FiveMicron,axis_inv=False,ROI=False,amfpatch=False):
+                 fNH3low,fNH3high,FiveMicron,axis_inv=False,ROI=False,amfpatch=False,
+                 dataversion=2):
     """
     PURPOSE:    Takes two map patches and makes a scatter plot
     CALLS:      n/a
@@ -52,6 +53,10 @@ def plot_roi_scatter(patch1,patch2,Real_CM2,LatLims,LonLims,axscor,PCldlow,PCldh
     stdv2=[]
     meanamf=[]
     roilabel=[]
+    if dataversion=="H":
+        scale=20
+    else:
+        scale=1
     
     if ROI:
         for R in ROI:
@@ -62,18 +67,21 @@ def plot_roi_scatter(patch1,patch2,Real_CM2,LatLims,LonLims,axscor,PCldlow,PCldh
 
             RLonLims=np.array(RLonLims)-LonLims[0]
 
-            subpatch1=patch1[RLatLims[0]:RLatLims[1],
-                             RLonLims[0]:RLonLims[1]]
-            subpatch2=patch2[RLatLims[0]:RLatLims[1],
-                             RLonLims[0]:RLonLims[1]]
-            amfsubpatch=amfpatch[RLatLims[0]:RLatLims[1],
-                             RLonLims[0]:RLonLims[1]]
+            subpatch1=patch1[RLatLims[0]*scale:RLatLims[1]*scale,
+                             RLonLims[0]*scale:RLonLims[1]*scale]
+            subpatch2=patch2[RLatLims[0]*scale:RLatLims[1]*scale,
+                             RLonLims[0]*scale:RLonLims[1]*scale]
+            #amfsubpatch=amfpatch[RLatLims[0]*scale:RLatLims[1]*scale,
+            #                 RLonLims[0]*scale:RLonLims[1]*scale]
 
-            axscor.scatter(subpatch2,subpatch1,marker="o",s=3.0,alpha=0.8,label=R)
+            if dataversion=="H":
+                axscor.scatter(subpatch2,subpatch1,marker=".",s=2,linewidths=0,alpha=1.0,label=R)
+            else:
+                axscor.scatter(subpatch2,subpatch1,marker="o",s=3.0,alpha=0.8,label=R)
             
             mean1.append(np.mean(subpatch1))
             mean2.append(np.mean(subpatch2))
-            meanamf.append(np.mean(amfsubpatch))
+            #meanamf.append(np.mean(amfsubpatch))
             stdv1.append(np.std(subpatch1))
             stdv2.append(np.std(subpatch2))
             roilabel.append(R)
@@ -89,8 +97,8 @@ def plot_roi_scatter(patch1,patch2,Real_CM2,LatLims,LonLims,axscor,PCldlow,PCldh
     else:
         axscor.set_xlabel("Ammonia Mole Fraction (ppm)",fontsize=10)
                     
-    axscor.legend(fontsize=7,ncols=3)
+    axscor.legend(fontsize=7,ncols=2,labelcolor='mfc')
     
     
-    return(roilabel,mean1,stdv1,mean2,stdv2,meanamf)
+    return(roilabel,mean1,stdv1,mean2,stdv2)#,meanamf)
   
