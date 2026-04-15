@@ -41,7 +41,7 @@ def make_patch(Map,LatLims,LonLims,CM,LonRng,pad=True):
     
     scale=int(Map.shape[0]/180)
     print("######## scale=",scale)
-    lon_max=360*scale
+    lon_max=int(360*scale)
     LatLims=np.array(LatLims)*scale
     LonRng=LonRng*scale
     CM=CM*scale
@@ -49,15 +49,17 @@ def make_patch(Map,LatLims,LonLims,CM,LonRng,pad=True):
     
     print(lon_max,LatLims,LonRng,CM,LonLims)
     
-    patch=np.copy(Map[LatLims[0]:LatLims[1],LonLims[0]:LonLims[1]])
+    patch=np.copy(Map[LatLims[0]:LatLims[1],int(LonLims[0]):int(LonLims[1])])
     if CM<LonRng:
-        print("******************  CM2deg<LonRng")
-        patch=np.concatenate((np.copy(Map[LatLims[0]:LatLims[1],LonLims[0]-1:lon_max]),
-                              np.copy(Map[LatLims[0]:LatLims[1],0:LonLims[1]-lon_max])),axis=1)
+        print("******************  CMdeg<LonRng")
+        patch=np.concatenate((np.copy(Map[LatLims[0]:LatLims[1],int(LonLims[0])-1:lon_max]),
+                              np.copy(Map[LatLims[0]:LatLims[1],0:int(LonLims[1])-lon_max])),axis=1)
     if CM>lon_max-LonRng:
-        print("******************  CM2deg>LonRng")
+        print("******************  CMdeg>LonRng")
+        print("lon_max+LonLims[0]:lon_max,0:LonLims[1]=",lon_max+int(LonLims[0]),lon_max,0,int(LonLims[1]))
 
-        patch=np.concatenate((np.copy(Map[LatLims[0]:LatLims[1],lon_max+LonLims[0]:lon_max]),
-                              np.copy(Map[LatLims[0]:LatLims[1],0:LonLims[1]])),axis=1)
-        print("lon_max+LonLims[0]:lon_max,0:LonLims[1]=",lon_max+LonLims[0],lon_max,0,LonLims[1])
+        patch=np.concatenate((np.copy(Map[LatLims[0]:LatLims[1],lon_max+int(LonLims[0]):lon_max]),
+                              np.copy(Map[LatLims[0]:LatLims[1],0:int(LonLims[1])])),axis=1)
+        #patch=np.concatenate((np.copy(Map[LatLims[0]:LatLims[1],lon_max+LonLims[0]:lon_max]),
+        #                      np.copy(Map[LatLims[0]:LatLims[1],0:LonLims[1]])),axis=1)
     return patch    

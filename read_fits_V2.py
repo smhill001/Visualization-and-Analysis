@@ -116,8 +116,11 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
     for key in RGBobjects:
         print(key)    
         templist=[item for item in filesIGB if key in item]
+        print(templist)
         if not templist:
-            filename=[item for item in filesIGB if RGBobjects[0] in item][0] #Kludge if missing GRN or BLU
+            #print(filesIGB)
+            #print(RGBobjects)
+            filename=[item for item in filesIGB if 'NIR' in item][0] #Kludge if missing GRN or BLU
             ##!!! Should use 'try' logic to trap error and find any working RGB channel
             RGBobjects[key]=read_fits_L3_V2_helper(pathIGB+filename,target="Jupiter",
                                  LonSys=LonSys,LimbCorrection=LimbCorrection,dataversion=dataversion)
@@ -404,7 +407,7 @@ def read_fits_map_L4(LonSys,collection="20220904-20220905",
     fits_in_directory = [item for item in files_in_directory \
                          if '.fits' in item ]  
     collection_in_directory = [item for item in fits_in_directory \
-                         if collection in item]  
+                         if collection in item]
     LonSys_in_directory = [item for item in collection_in_directory \
                          if 'Sys'+LonSys in item]
     print("############### LonSys_in_directory=",LonSys_in_directory)

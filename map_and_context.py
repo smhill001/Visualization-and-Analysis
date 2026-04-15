@@ -14,8 +14,8 @@ def make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
     else:
         fnskeleton=correction+'_Sys'+LonSys+'_N'+\
                     str(90-LatLims[0])+'-S'+str(LatLims[1]-90)+\
-                    '_Lon'+str(np.mod(360-LonLims[1],360)).zfill(3)+'-'+\
-                        str(np.mod(360-LonLims[0],360)).zfill(3)+'.png'
+                    '_Lon'+str(np.mod(360-int(LonLims[1]),360)).zfill(3)+'-'+\
+                        str(np.mod(360-int(LonLims[0]),360)).zfill(3)+'.png'
 
     ###!!!! Temporary fix for the fact that L2 header FILENAME doesn't contain
     ###!!!! the file extension and L3 header FILENAME does!
@@ -133,7 +133,7 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
     cbttl="Mean="+str(np.mean(data_patch))[:4]+" $\pm$ "+str(np.std(data_patch))[:3] \
         +' Min '+str(np.min(data_patch))[:4]+' Max '+str(np.max(data_patch))[:4]+' Med '+str(np.median(data_patch))[:4]
 
-    data_patch,vn,vx,tx=PP.plot_patch(data_patch,LatLims,LonLimsEast,
+    data_patch,vn,vx,tx,cbar=PP.plot_patch(data_patch,LatLims,LonLimsEast,
                                      PlotCM,LonRng,ct,axs1[0],'%3.2f',
                                      n=6,vn=low,vx=high,
                                      #cbar_title=cbar_title,cbar_reverse=cbar_rev)

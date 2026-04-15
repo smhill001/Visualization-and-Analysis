@@ -112,7 +112,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         fNH3low=0
         fNH3high=300
         PCldlow=1000
-        PCldhigh=3000
+        PCldhigh=3500
         
     micronlow=0.5
     micronhigh=3.5
@@ -242,11 +242,11 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                         ROI=ROI,smoothcont=smoothcont,dataversion=dataversion)
 
     if "surface" in plotoptions:
-        path="C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/"+subproj+"/"
+        print("#############",PCld_patch.shape,fNH3_patch_mb.shape)
         msurf.map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
                                PCldhdr,fNH3hdr,RGBtime,
                                LonSys,CoLatLims,[360-NH3LonLims[1],360-NH3LonLims[0]],
-                               180,180,path,dataversion=dataversion)
+                               180,180,pathmapplots,dataversion=dataversion)
         
     if "wave" in plotoptions:
         L4M.RossbyWavePlot(obskey,NH3LonLims,fNH3_patch_mb,PCld_patch,[6,6],
@@ -288,6 +288,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     if 'resid' in plotoptions:
         LonLimsEast=[360-NH3LonLims[1],360-NH3LonLims[0]]
 
+        """
         figrc,axsrc=pl.subplots(2,1,figsize=(5,5), dpi=150, facecolor="white",
                                 sharex=True,sharey=True)
         figrc.suptitle(obskey+" Normalized Residuals")
@@ -305,15 +306,91 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             #axsrc[0].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
         axsrc[0].set_title("Normalized Residual",fontsize=10)
         axsrc[1].set_title("Box Correlation (5x5 deg)",fontsize=10)
+        axsrc[1].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
+        """
 
+        figz = pl.figure(figsize=(8,4.5),dpi=150,facecolor="white")
+       
+       
+        gz = figz.add_gridspec(
+            3, 2,
+            left=-0.05,
+            right=0.98,
+            top=0.94,
+            bottom=0.10,
+            wspace=0.0,
+            hspace=0.4
+        )
+       
+        # Left column (your 3 stacked plots)
+        axsz = [figz.add_subplot(gz[i, 0]) for i in range(3)]
+        axsz[0].sharex(axsz[2])
+        axsz[2].sharex(axsz[2])
+        axsz[0].sharey(axsz[2])
+        axsz[2].sharey(axsz[2])
+        
+        # Right column (whatever goes there)
+        axs1 = figz.add_subplot(gz[:, 1])
+        #subfigs[0].set_facecolor('lightblue')
+        #subfigs[0].suptitle('subfigs[0]\nLeft side')
+        #subfigs[0].supxlabel('xlabel for subfigs[0]')
+        
+        #axs1 = subfigs[1].subplots(1)
+        #axs1 = subfig_right.subplots(1)
+       
+        axsz[0].grid(linewidth=0.2)
+        axsz[0].ylim=[-45.,45.]
+        axsz[0].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
+        axsz[0].set_xticks(np.linspace(450,0,31), minor=False)
+        xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
+        axsz[0].set_xticklabels(xticklabels.astype(int))
+        axsz[0].set_yticks(np.linspace(-45,45,7), minor=False)
+        axsz[0].tick_params(axis='both', which='major', labelsize=9)
+        axsz[0].set_ylabel("PG Lat. (deg)",fontsize=10)
+        #axsz[0].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
+        axsz[0].set_title("Context Image (673/502/395nm)",fontsize=10,y=1.0)
 
+        axsz[1].grid(linewidth=0.2)
+        axsz[1].ylim=[-45.,45.]
+        axsz[1].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
+        axsz[1].set_xticks(np.linspace(450,0,31), minor=False)
+        xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
+        axsz[1].set_xticklabels(xticklabels.astype(int))
+        axsz[1].set_yticks(np.linspace(-45,45,7), minor=False)
+        axsz[1].tick_params(axis='both', which='major', labelsize=9)
+        axsz[1].set_ylabel("PG Lat. (deg)",fontsize=10)
+        #axsz[1].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
+        axsz[1].set_title("Normalized Residual",fontsize=10,y=0.98)
+
+        axsz[2].grid(linewidth=0.2)
+        axsz[2].ylim=[-45.,45.]
+        axsz[2].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
+        axsz[2].set_xticks(np.linspace(450,0,31), minor=False)
+        xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
+        axsz[2].set_xticklabels(xticklabels.astype(int))
+        axsz[2].set_yticks(np.linspace(-45,45,7), minor=False)
+        axsz[2].tick_params(axis='both', which='major', labelsize=9)
+        axsz[2].set_ylabel("PG Lat. (deg)",fontsize=10)
+        axsz[2].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
+        axsz[2].set_title("Box Correlation (5x5 deg)",fontsize=10,y=0.95)
+
+        #axs3[0].set_adjustable('box') 
+        #axs3[1].set_adjustable('box') 
+ 
+       
+        vn,vx=-0.8,0.8
+        pp.plot_patch(RGB4Display,CoLatLims,LonLimsEast,PCldPlotCM,LonRng,'BrBG',axsz[0],
+                   cbarplot=True,cbar_title="",cbar_reverse=False,vn=vn,vx=vx,n=6)
+        
+        axs1.set_title("Ammonia Mole Fraction versus Cloud Pressure",fontsize=12)
+        axs1.set_box_aspect(1)
         norm_A,norm_B,resid_AB=residual_2d(fNH3_patch_mb,PCld_patch)
         if dataversion=='H':
-            vn,vx=-0.6,0.6
+            vn,vx=-0.8,0.8
         else:
-            vn,vx=-1.0,1.0
-        pp.plot_patch(resid_AB,CoLatLims,LonLimsEast,PCldPlotCM,LonRng,'BrBG',axsrc[0],
-                   cbarplot=True,cbar_title="Test",cbar_reverse=False,vn=vn,vx=vx,n=6)
+            vn,vx=-1.1,1.1
+        pp.plot_patch(resid_AB,CoLatLims,LonLimsEast,PCldPlotCM,LonRng,'BrBG',axsz[1],
+                   cbarplot=True,cbar_title="",cbar_reverse=False,vn=vn,vx=vx,n=6)
         
         if 'correl' in plotoptions:
             #figc,axsc=pl.subplots(1,figsize=(5,5), dpi=150, facecolor="white")
@@ -321,17 +398,25 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     
             cc2d=rolling_corr2d(norm_A,norm_B,5,dataversion=dataversion)
             print("########### cc2d.shape= ",cc2d.shape,np.max(cc2d))
-            pp.plot_patch(cc2d,CoLatLims,LonLimsEast,PCldPlotCM,LonRng,'seismic_r',axsrc[1],
-                       cbarplot=True,cbar_title="Test",cbar_reverse=False,vn=-1.0,vx=1.0,n=6,alpha=0.7)
+            pp.plot_patch(cc2d,CoLatLims,LonLimsEast,PCldPlotCM,LonRng,'seismic_r',axsz[2],
+                       cbarplot=True,cbar_title="",cbar_reverse=False,vn=-1.0,vx=1.0,n=6,alpha=0.7)
+            
+        ROIcolors={"Hot Spot":'r',
+             "Gyre":'g',
+             "Cloud Plume":'b',
+             "NEB Reference":'k'}
             
         if ROI:
             for R in ROI:
                 for i in [0,1]:
-                    axsrc[i].plot(np.array([ROI[R][2]+ROI[R][3],ROI[R][2]-ROI[R][3],
+                    axsz[i].plot(np.array([ROI[R][2]+ROI[R][3],ROI[R][2]-ROI[R][3],
                                   ROI[R][2]-ROI[R][3],ROI[R][2]+ROI[R][3],
                                   ROI[R][2]+ROI[R][3]]),
                                   90.-np.array([ROI[R][0],ROI[R][0],ROI[R][1],
-                                  ROI[R][1],ROI[R][0]]))
+                                  ROI[R][1],ROI[R][0]]),color=ROIcolors[R])
+                    
+        figz.savefig(pathmapplots+fnNH3[:-4]+' resid-correl.png',dpi=300)
+
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs 5um radiance)
     ###########################################################################

@@ -108,15 +108,47 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     #              +str(int(PlotCM)),x=0.5,ha='center',color='k')
 
     #fig3 = pl.figure(layout="constrained",figsize=(8,6))
-    fig3 = pl.figure(figsize=(12,6))
-    subfigs = fig3.subfigures(1, 2, wspace=0.15)
-    axs3 = subfigs[0].subplots(3, 1,sharex=True)
+    #fig3 = pl.figure(figsize=(10,6),constrained_layout=False)
+    #subfigs = fig3.subfigures(1, 2, wspace=0.05)
+    #axs3 = subfigs[0].subplots(3, 1,sharex=True)
+    
+    #gs = fig3.add_gridspec(1, 2, left=0.02, right=0.98, wspace=0.02)
+
+    #subfig_left  = fig3.add_subfigure(gs[0],left=0.02)
+    #subfig_right = fig3.add_subfigure(gs[1])
+
+    #axs3 = subfig_left.subplots(3, 1, sharex=True)
+    
+    fig3 = pl.figure(figsize=(8,4.5),dpi=150,facecolor="white")
+
+
+    gs = fig3.add_gridspec(
+        3, 2,
+        left=-0.05,
+        right=0.98,
+        top=0.94,
+        bottom=0.10,
+        wspace=0.0,
+        hspace=0.4
+    )
+
+    # Left column (your 3 stacked plots)
+    axs3 = [fig3.add_subplot(gs[i, 0]) for i in range(3)]
+    axs3[0].sharex(axs3[2])
+    axs3[2].sharex(axs3[2])
+    axs3[0].sharey(axs3[2])
+    axs3[2].sharey(axs3[2])
+    
+    # Right column (whatever goes there)
+    axs1 = fig3.add_subplot(gs[:, 1])
     #subfigs[0].set_facecolor('lightblue')
     #subfigs[0].suptitle('subfigs[0]\nLeft side')
     #subfigs[0].supxlabel('xlabel for subfigs[0]')
     
-    axs1 = subfigs[1].subplots(1)
-    axs1.set_title("Ammonia versus Cloud Pressure")
+    #axs1 = subfigs[1].subplots(1)
+    #axs1 = subfig_right.subplots(1)
+
+    axs1.set_title("Ammonia Mole Fraction versus Cloud Pressure",fontsize=12)
     axs1.set_box_aspect(1)
     #subfigs[1].suptitle('subfigs[1]')
     #subfigs[1].supylabel('ylabel for subfigs[1]')
@@ -131,7 +163,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     axs3[0].tick_params(axis='both', which='major', labelsize=9)
     axs3[0].set_ylabel("PG Lat. (deg)",fontsize=10)
     #axs3[0].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-    axs3[0].set_title(Ltitle,fontsize=10)
+    axs3[0].set_title("Cloud Pressure (mb)",fontsize=10,y=1.0)
 
     axs3[1].grid(linewidth=0.2)
     axs3[1].ylim=[-45.,45.]
@@ -143,7 +175,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     axs3[1].tick_params(axis='both', which='major', labelsize=9)
     axs3[1].set_ylabel("PG Lat. (deg)",fontsize=10)
     #axs3[1].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-    axs3[1].set_title(Ltitle,fontsize=10)
+    axs3[1].set_title("Context Image (673/502/395nm)",fontsize=10,y=0.98)
 
     axs3[2].grid(linewidth=0.2)
     axs3[2].ylim=[-45.,45.]
@@ -155,8 +187,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     axs3[2].tick_params(axis='both', which='major', labelsize=9)
     axs3[2].set_ylabel("PG Lat. (deg)",fontsize=10)
     axs3[2].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-    axs3[2].set_title(Ltitle,fontsize=10)
-
+    axs3[2].set_title("Ammonia Mole Fraction (ppm)",fontsize=10,y=0.95)
 
     #axs3[0].set_adjustable('box') 
     #axs3[1].set_adjustable('box') 
@@ -166,23 +197,34 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     #                                 axs2[0],'%3.2f',cont=False,
     #                                 cbar_reverse=True,vn=400,vx=900,n=6)
     #Testy_patch=MP.make_patch(mapydata,LatLims,LonLimsEast,PlotCM,LonRng)
-    tp,vn,vx,tx=PP.plot_patch(patchy,LatLims,LonLimsEast,
+
+    cbttl="Mean="+str(np.mean(patchy))[:4]+" $\pm$ "+str(np.std(patchy))[:3]
+    tp,vn,vx,tx,cbary=PP.plot_patch(patchy,LatLims,LonLimsEast,
                                      PlotCM,LonRng,ct,
                                      axs3[0],'%3.2f',
                                      cbar_reverse=cbar_rev,vn=ylow,vx=yhigh,n=6,
-                                     cbar_title=cbar_title)
+                                     cbar_title=cbttl)
     #Testy_patch=MP.make_patch(mapydata,LatLims,LonLimsEast,PlotCM,LonRng)
-    tp,vn,vx,tx=PP.plot_patch(RGBpatch,LatLims,LonLimsEast,
+    tp,vn,vx,tx,cbarRGB=PP.plot_patch(RGBpatch,LatLims,LonLimsEast,
                                      PlotCM,LonRng,"terrain_r",
                                      axs3[1],'%3.2f',
                                      cbar_reverse=False,vn=xlow,vx=xhigh,n=6,
-                                     cbar_title=cbar_title)
+                                     cbar_title=cbar_title,cbarvis=False)
+
     #Testy_patch=MP.make_patch(mapydata,LatLims,LonLimsEast,PlotCM,LonRng)
-    tp,vn,vx,tx=PP.plot_patch(patchx,LatLims,LonLimsEast,
+    cbttl="Mean="+str(np.mean(patchx))[:3]+" $\pm$ "+str(np.std(patchx))[:2]
+    tp,vn,vx,tx,cbarx=PP.plot_patch(patchx,LatLims,LonLimsEast,
                                      PlotCM,LonRng,"terrain_r",
                                      axs3[2],'%3.2f',
                                      cbar_reverse=False,vn=xlow,vx=xhigh,n=6,
-                                     cbar_title=cbar_title)
+                                     cbar_title=cbttl)
+
+    #for ax in axs3:
+    #    ax.set_anchor('W')    
+    #cbary.set_anchor('W')
+    #cbarRGB.set_anchor('W')
+    #cbarx.set_anchor('W')
+
     if cont:
         patchxsmth = gaussian_filter(patchx, sigma=smoothcont)
         temp=PC.plot_contours_on_patch(axs3[0],patchxsmth,LatLims,LonLimsEast,
@@ -224,29 +266,20 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
         
         
     axs3[1].tick_params(axis='both', which='major', labelsize=9)
-    axs3[1].set_title(Rtitle,fontsize=10)
-    
-    if "PCloud" in Rtitle and "5um" in Rtitle:
-        axs3[1].set_ylabel("Cloud Top Pressure (mb)",fontsize=10)        
-    if "fNH3" in Rtitle and "5um" in Rtitle:
-        axs3[1].set_ylabel("Ammonia Mole Fraction (ppm)",fontsize=10)
-    if "Methane" and "Ammonia" in Rtitle:
-        axs3[1].set_xlabel("Ammonia Opacity")
-        axs3[1].set_ylabel("Methane Opacity")
-    if "Methane" in Rtitle and "5um" in Rtitle:
-        axs3[1].set_ylabel("Methane Opacity",fontsize=10)        
-    if "Ammonia" in Rtitle and "5um" in Rtitle:
-        axs3[1].set_ylabel("Ammonia Opacity",fontsize=10)        
-        axs3[1].set_xlabel("5um Radiance (Log10(arb. units)",fontsize=10)        
-        
+
+    ROIcolors={"Hot Spot":'r',
+         "Gyre":'g',
+         "Cloud Plume":'b',
+         "NEB Reference":'k'}           
     if ROI:
         for R in ROI:
+            
             for i in [0,1,2]:
                 axs3[i].plot(np.array([ROI[R][2]+ROI[R][3],ROI[R][2]-ROI[R][3],
                               ROI[R][2]-ROI[R][3],ROI[R][2]+ROI[R][3],
                               ROI[R][2]+ROI[R][3]]),
                               90.-np.array([ROI[R][0],ROI[R][0],ROI[R][1],
-                              ROI[R][1],ROI[R][0]]))
+                              ROI[R][1],ROI[R][0]]),color=ROIcolors[R])
     else:
         BZind=copy.deepcopy(BZ)   
         BZkeys=BZ.keys()
@@ -283,7 +316,12 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
 
     #box = axs3[1].get_position()
     #axs3[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 0.5, box.height * 1.015])    
-    fig3.subplots_adjust(left=0.05, right=0.85, top=0.92, bottom=0.10)
+    #fig3.subplots_adjust(left=0.02, right=0.95, top=0.92, bottom=0.10)
+    #subfig_left.subplots_adjust(left=0.01, right=0.95, top=0.92, bottom=0.10)
+    #for ax in axs3:
+    #    ax.tick_params(axis='y', pad=1)
+    for ax in axs3:
+        print(ax.get_position())
     fig3.savefig(pathout+fnout[:-4]+' scatter.png',dpi=300)
     
     if not ROI:

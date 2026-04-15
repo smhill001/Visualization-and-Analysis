@@ -44,7 +44,7 @@ def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
     
     # Make data.
     if dataversion==1 or dataversion==2:
-        Lons = np.arange(360-LonLims[0],360-LonLims[1],-1.0)
+        Lons = np.arange(360-int(LonLims[0]),360-int(LonLims[1]),-1)
         Lats = np.arange(90-LatLims[0],90-LatLims[1], -1.0)
     elif dataversion=='H': ##!!!!!!! Need to work on this
         Lons = np.arange(360-LonLims[0],360-LonLims[1],-0.05)
@@ -60,12 +60,14 @@ def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
     
     fnskeleton='_Sys'+LonSys+'_N'+\
                 str(90-LatLims[0])+'-S'+str(LatLims[1]-90)+\
-                '_Lon'+str(np.mod(360-LonLims[1],360)).zfill(3)+'-'+\
-                    str(np.mod(360-LonLims[0],360)).zfill(3)
+                '_Lon'+str(np.mod(360-int(LonLims[1]),360)).zfill(3)+'-'+\
+                    str(np.mod(360-int(LonLims[0]),360)).zfill(3)
 
     print("############# fnskel=",fnskeleton)
     ###########################################################################
     # Plot the Cloud surface.
+    print("############# X, Y, Z=",X.shape,Y.shape,Z.shape)
+
     surfPCld = ax3dCld.plot_surface(X, Y, Z, cmap="Blues",linewidth=0, 
                                     antialiased=False,
                                     vmin=1400,vmax=2200)
