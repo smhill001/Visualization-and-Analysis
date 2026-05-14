@@ -12,7 +12,7 @@ def flatten_json_agg_to_csv(data, csv_output_path):
         writer = csv.writer(csvfile)
 
         # Write header
-        header = ['obs_id', 'dateobs', 'roilabel', 'mean1', 'stdv1', 'mean2', 'stdv2', 'meanamf']
+        header = ['obs_id', 'dateobs', 'roilabel', 'mean1', 'stdv1', 'mean2', 'stdv2']#, 'meanamf']
         writer.writerow(header)
 
         for obs_id, entry in data.items():
@@ -22,7 +22,7 @@ def flatten_json_agg_to_csv(data, csv_output_path):
             stdv1 = entry['stdv1']
             mean2 = entry['mean2']
             stdv2 = entry['stdv2']
-            meanamf = entry['meanamf']
+            #meanamf = entry['meanamf']
 
             for i in range(len(roilabels)):
                 writer.writerow([
@@ -33,7 +33,7 @@ def flatten_json_agg_to_csv(data, csv_output_path):
                     stdv1[i],
                     mean2[i],
                     stdv2[i],
-                    meanamf[i]
+                    #meanamf[i]
                 ])
                 
 def flatten_json_mean_to_csv(data, csv_output_path):

@@ -88,6 +88,7 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
                 filesSci.append(fn)
     else:
         filesSci=filesSciTemp
+        
     #pathIGB=pathin+'New_Results/'+obskey[:-1]+'/'+obskey+'/L1/'
     pathIGB=pathin+'/'+obskey[:-1]+'/'+obskey+'/L1/'
     filesIGBTemp=os.listdir(pathIGB)
@@ -99,40 +100,45 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
     else:
         filesIGB=filesIGBTemp
 
-    sciobjects={'PCld':[],'fNH3':[]}
     if dataversion==2:
+        sciobjects={'PCld':[],'fNH3':[]}
         RGBobjects={'NIR':[],'GRN':[],'BLU':[]}
     elif dataversion=='H':
-        RGBobjects={'673':[],'502':[],'395':[]}
+        sciobjects={'PCld':[],'fNH3':[],'CI':[],'AOI':[]}
+        RGBobjects={'673 Norm':[],'502 Norm':[],'395 Norm':[]}
 
     print("############## filesSci= ",filesSci)
 
-    for key in sciobjects: 
-        filename=[item for item in filesSci if key in item][0]
-        print(filename)
-        sciobjects[key]=read_fits_L3_V2_helper(pathSci+filename,target="Jupiter",
-                             LonSys=LonSys,LimbCorrection=LimbCorrection,dataversion=dataversion)
+    if len(filesSci)>0:
+        for key in sciobjects:
+            filename=[item for item in filesSci if key in item][0]
+            print(filename)
+            sciobjects[key]=read_fits_L3_V2_helper(pathSci+filename,target="Jupiter",
+                                 LonSys=LonSys,LimbCorrection=LimbCorrection,dataversion=dataversion)
     
-    for key in RGBobjects:
-        print(key)    
-        templist=[item for item in filesIGB if key in item]
-        print(templist)
-        if not templist:
-            #print(filesIGB)
-            #print(RGBobjects)
-            filename=[item for item in filesIGB if 'NIR' in item][0] #Kludge if missing GRN or BLU
-            ##!!! Should use 'try' logic to trap error and find any working RGB channel
-            RGBobjects[key]=read_fits_L3_V2_helper(pathIGB+filename,target="Jupiter",
-                                 LonSys=LonSys,LimbCorrection=LimbCorrection,dataversion=dataversion)
-        elif templist:
-            filename=templist[0]
-            RGBobjects[key]=read_fits_L3_V2_helper(pathIGB+filename,target="Jupiter",
-                                 LonSys=LonSys,LimbCorrection=LimbCorrection,dataversion=dataversion)
+    if len(filesIGB)>0:
+        for key in RGBobjects:
+            print(key)    
+            templist=[item for item in filesIGB if key in item]
+            print(templist)
+            if not templist:
+                #print(filesIGB)
+                #print(RGBobjects)
+                filename=[item for item in filesIGB if 'NIR' in item][0] #Kludge if missing GRN or BLU
+                ##!!! Should use 'try' logic to trap error and find any working RGB channel
+                RGBobjects[key]=read_fits_L3_V2_helper(pathIGB+filename,target="Jupiter",
+                                     LonSys=LonSys,LimbCorrection=LimbCorrection,dataversion=dataversion)
+            elif templist:
+                filename=templist[0]
+                RGBobjects[key]=read_fits_L3_V2_helper(pathIGB+filename,target="Jupiter",
+                                     LonSys=LonSys,LimbCorrection=LimbCorrection,dataversion=dataversion)
 
     if dataversion==2:
         IGBdatar=np.dstack((RGBobjects['NIR']['datar'],RGBobjects['GRN']['datar'],RGBobjects['BLU']['datar']))
     elif dataversion=='H':
-        IGBdatar=np.dstack((RGBobjects['673']['datar'],RGBobjects['502']['datar'],RGBobjects['395']['datar']))
+        IGBdatar=np.dstack((RGBobjects['673 Norm']['datar'],
+                            RGBobjects['502 Norm']['datar'],
+                            RGBobjects['395 Norm']['datar']))
     IGBdatarx=np.nan_to_num(IGBdatar, nan=0.0, posinf=1.0, neginf=0.0)
 
     
@@ -143,7 +149,10 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
     elif dataversion=='H':
         return(sciobjects['PCld']['hdr'],sciobjects['PCld']['datar'],
                sciobjects['fNH3']['hdr'],sciobjects['fNH3']['datar'],
-               IGBdatarx/np.max(IGBdatarx),RGBobjects['502']['hdr']['CM'+LonSys],RGBobjects['502']['hdr']['DATE-OBS'])
+               sciobjects['CI']['hdr'],sciobjects['CI']['datar'],
+               sciobjects['AOI']['hdr'],sciobjects['AOI']['datar'],
+               IGBdatarx/np.max(IGBdatarx),RGBobjects['502 Norm']['hdr']['CM'+LonSys],
+               RGBobjects['502 Norm']['hdr']['DATE-OBS'])
 
 def read_fits_map_L3_V1(obskey="20231026UTa",imagetype="Map",Level="L3",
                         target="Jupiter",LonSys='3',

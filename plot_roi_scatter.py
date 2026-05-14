@@ -1,6 +1,6 @@
 def plot_roi_scatter(patch1,patch2,Real_CM2,LatLims,LonLims,axscor,PCldlow,PCldhigh,
                  fNH3low,fNH3high,FiveMicron,axis_inv=False,ROI=False,amfpatch=False,
-                 dataversion=2):
+                 dataversion=2,xaxistitle='',yaxistitle=''):
     """
     PURPOSE:    Takes two map patches and makes a scatter plot
     CALLS:      n/a
@@ -60,7 +60,7 @@ def plot_roi_scatter(patch1,patch2,Real_CM2,LatLims,LonLims,axscor,PCldlow,PCldh
     ROIcolors={"Hot Spot":'r',
          "Gyre":'g',
          "Cloud Plume":'b',
-         "NEB Reference":'k'}           
+         "Reference":'k'}           
 
     if ROI:
         for R in ROI:
@@ -94,13 +94,17 @@ def plot_roi_scatter(patch1,patch2,Real_CM2,LatLims,LonLims,axscor,PCldlow,PCldh
     axscor.grid(linewidth=0.2)
     axscor.set_ylim(PCldlow,PCldhigh)
     axscor.set_xlim(fNH3low,fNH3high)
-    axscor.set_ylabel("Cloud-top Pressure (mb)",fontsize=10)
+    #axscor.set_ylabel("Cloud-top Pressure (mb)",fontsize=10)
+    axscor.set_xlabel(xaxistitle,fontsize=10)
+    axscor.set_ylabel(yaxistitle,fontsize=10)
     if axis_inv:
         axscor.invert_yaxis()
+    """
     if FiveMicron:
         axscor.set_xlabel("5um Radiance (Log10(arb. units)",fontsize=10)
     else:
         axscor.set_xlabel("Ammonia Mole Fraction (ppm)",fontsize=10)
+    """
                     
     axscor.legend(fontsize=8,ncols=2,labelcolor='mfc')
     

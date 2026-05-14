@@ -337,7 +337,7 @@ def plot_optical_maps(LonLims,LatLims,collection,blendweightfNH3,
     fNH3_patch_mb=MP.make_patch(blendweightfNH3,LatLims,[360-LonLims[1],360-LonLims[0]],
                                      180,180)
     cbttl="Mean="+str(np.mean(fNH3_patch_mb))[:3]+" $\pm$ "+str(np.std(fNH3_patch_mb))[:2]
-    fNH3_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(fNH3_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
+    fNH3_patch_mb,vn,vx,tx_fNH3,cbar=PP.plot_patch(fNH3_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                      180,180,ctbls[0],
                                      axs1[0],'%3.2f',n=6,
                                      vn=fNH3low,
@@ -362,7 +362,7 @@ def plot_optical_maps(LonLims,LatLims,collection,blendweightfNH3,
                                 [360-LonLims[1],360-LonLims[0]],180,180)
     cbttl="Mean = "+str(np.mean(PCld_patch_mb))[:4]+" $\pm$ "+str(np.std(PCld_patch_mb))[:3]
 
-    PCld_patch_mb,vn,vx,tx_PCld=PP.plot_patch(PCld_patch_mb,LatLims,
+    PCld_patch_mb,vn,vx,tx_PCld,cbar=PP.plot_patch(PCld_patch_mb,LatLims,
                                               [360-LonLims[1],360-LonLims[0]],
                                               180,180,ctbls[1],
                                               axs1[1],'%3.2f',n=5,
@@ -799,7 +799,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     ###########################################################################
     # SURFACE PLOTS FOR OPTICAL DATA
     ###########################################################################
-    path="C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/"
+    #path="C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/"+proj+"/"
     if surfplot:
         msurf.map_cloudsurface(PCld_patch_mb,fNH3_patch_mb,RGB4Display,
                                False,False,False,
@@ -835,28 +835,45 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     if segment:
         #NH3thresh=135 #standard value
         NH3thresh=145 #alt value
-        Cloudthresh=1750
-        NEDFthresh=1950
+        Cloudthresh=1800
+        #NEDFthresh=1950
+        NEDFthresh=2030
         fNH3_mask, labeled_fNH3, props_fNH3= \
-            FB.process_blob(fNH3_patch_mb, PCld_patch_mb, LatLims, LonLims, timearray=blendweightTime_patch,threshold_abs=NH3thresh, mode='max')
-        
+            FB.process_blob(fNH3_patch_mb, PCld_patch_mb, LatLims, LonLims, 
+                            timearray=blendweightTime_patch,
+                            threshold_abs=NH3thresh, mode='max')
+        print("******************")
+        print("fNH3_mask.shape=",fNH3_mask.shape)
         Plum_mask, labeled_Plum, props_Plum= \
-            FB.process_blob(PCld_patch_mb, fNH3_patch_mb, LatLims, LonLims, timearray=blendweightTime_patch, threshold_abs=Cloudthresh, mode='min')
+            FB.process_blob(PCld_patch_mb, fNH3_patch_mb, LatLims, LonLims, 
+                            timearray=blendweightTime_patch, 
+                            threshold_abs=Cloudthresh, mode='min')
         
         NEDF_mask, labeled_NEDF, props_NEDF= \
-            FB.process_blob(PCld_patch_mb, fNH3_patch_mb, LatLims, LonLims, timearray=blendweightTime_patch, threshold_abs=NEDFthresh, mode='max')
+            FB.process_blob(PCld_patch_mb, fNH3_patch_mb, LatLims, LonLims, 
+                            timearray=blendweightTime_patch, 
+                            threshold_abs=NEDFthresh, mode='max')
         
-        FB.export_regions_to_csv(props_fNH3, path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs"+" fNH3.csv")
-        FB.export_regions_to_csv(props_Plum, path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs"+" Plum.csv")
-        FB.export_regions_to_csv(props_NEDF, path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs"+" NEDF.csv")
+        FB.export_regions_to_csv(props_fNH3, NH3thresh, 
+                                 path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NH3thresh)+" fNH3.csv")
+        FB.export_regions_to_csv(props_Plum, Cloudthresh, 
+                                 path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(Cloudthresh)+" Plum.csv")
+        FB.export_regions_to_csv(props_NEDF, NEDFthresh, 
+                                 path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NEDFthresh)+" NEDF.csv")
         print("$$$$$$$$$$$$$$$$$$$$$$$$$",LatLims,LonLims)
 
-        FB.plot_regions_on_axis(axs1[2], labeled_fNH3, props_fNH3,lon_lims=LonLims,LatLims=LatLims,
-                     plot_contours=False, plot_masks=True,plot_labels=False,contour_color='C0')
-        FB.plot_regions_on_axis(axs1[2], labeled_Plum, props_Plum,lon_lims=LonLims,LatLims=LatLims,
-                     plot_contours=False, plot_masks=True,plot_labels=False, contour_color='white')
-        FB.plot_regions_on_axis(axs1[2], labeled_NEDF, props_NEDF,lon_lims=LonLims,LatLims=LatLims,
-                     plot_contours=False, plot_masks=True,plot_labels=False, contour_color='black')
+        FB.plot_regions_on_axis(axs1[2], labeled_fNH3, props_fNH3,
+                                lon_lims=LonLims,LatLims=LatLims,
+                                plot_contours=False, plot_masks=True,
+                                plot_labels=False,contour_color='C0')
+        FB.plot_regions_on_axis(axs1[2], labeled_Plum, props_Plum,
+                                lon_lims=LonLims,LatLims=LatLims,
+                                plot_contours=False, plot_masks=True,
+                                plot_labels=False, contour_color='white')
+        FB.plot_regions_on_axis(axs1[2], labeled_NEDF, props_NEDF,
+                                lon_lims=LonLims,LatLims=LatLims,
+                                plot_contours=False, plot_masks=True,
+                                plot_labels=False, contour_color='black')
 
     fig1.savefig(path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" map.png",dpi=300)
     if variance:
@@ -1025,25 +1042,26 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
             leg=True
         else:
             leg=False
-        pps.plot_profile_scatter(means[1][::-1],means[0][::-1],Coords,axNH3vCloud,PCldlow,PCldhigh,
-                         fNH3low,fNH3high,False,bands,colors,Level="L3",
-                         leg=leg,axis_inv=True,date=collection[2:8],counter=counter,countmax=countmax)
+        if meridplot:
+            pps.plot_profile_scatter(means[1][::-1],means[0][::-1],Coords,axNH3vCloud,PCldlow,PCldhigh,
+                             fNH3low,fNH3high,False,bands,colors,Level="L3",
+                             leg=leg,axis_inv=True,date=collection[2:8],counter=counter,countmax=countmax)
         
-        axNH3vCloud.legend()
-        
-        xmin,xmax=axNH3vCloud.get_xlim()
-        ymin,ymax=axNH3vCloud.get_ylim()
-        
-        axNH3vCloud.scatter(xmin+0.03*(xmax-xmin),ymax-0.02*(ymax-ymin),marker='o',c='k',s=50)
-        axNH3vCloud.scatter(xmin+0.03*(xmax-xmin),ymax-0.08*(ymax-ymin),marker='^',c='k',s=50)
-        axNH3vCloud.scatter(xmin+0.03*(xmax-xmin),ymax-0.14*(ymax-ymin),marker='s',c='k',s=50)
-        axNH3vCloud.scatter(xmin+0.03*(xmax-xmin),ymax-0.20*(ymax-ymin),marker='D',c='k',s=50)
-        
-        axNH3vCloud.annotate('2022',xy=(xmin+0.03*(xmax-xmin),ymax-0.01*(ymax-ymin)), xycoords='data',xytext=(xmin+0.05*(xmax-xmin),ymax-0.02*(ymax-ymin)),fontsize=9,verticalalignment='center_baseline')
-        axNH3vCloud.annotate('2023',xy=(xmin+0.03*(xmax-xmin),ymax-0.01*(ymax-ymin)), xycoords='data',xytext=(xmin+0.05*(xmax-xmin),ymax-0.08*(ymax-ymin)),fontsize=9,verticalalignment='center_baseline')
-        axNH3vCloud.annotate('2024',xy=(xmin+0.03*(xmax-xmin),ymax-0.01*(ymax-ymin)), xycoords='data',xytext=(xmin+0.05*(xmax-xmin),ymax-0.14*(ymax-ymin)),fontsize=9,verticalalignment='center_baseline')
-        axNH3vCloud.annotate('2025',xy=(xmin+0.03*(xmax-xmin),ymax-0.01*(ymax-ymin)), xycoords='data',xytext=(xmin+0.05*(xmax-xmin),ymax-0.20*(ymax-ymin)),fontsize=9,verticalalignment='center_baseline')
-        
+            axNH3vCloud.legend()
+            
+            xmin,xmax=axNH3vCloud.get_xlim()
+            ymin,ymax=axNH3vCloud.get_ylim()
+            
+            axNH3vCloud.scatter(xmin+0.03*(xmax-xmin),ymax-0.02*(ymax-ymin),marker='o',c='k',s=50)
+            axNH3vCloud.scatter(xmin+0.03*(xmax-xmin),ymax-0.08*(ymax-ymin),marker='^',c='k',s=50)
+            axNH3vCloud.scatter(xmin+0.03*(xmax-xmin),ymax-0.14*(ymax-ymin),marker='s',c='k',s=50)
+            axNH3vCloud.scatter(xmin+0.03*(xmax-xmin),ymax-0.20*(ymax-ymin),marker='D',c='k',s=50)
+            
+            axNH3vCloud.annotate('2022',xy=(xmin+0.03*(xmax-xmin),ymax-0.01*(ymax-ymin)), xycoords='data',xytext=(xmin+0.05*(xmax-xmin),ymax-0.02*(ymax-ymin)),fontsize=9,verticalalignment='center_baseline')
+            axNH3vCloud.annotate('2023',xy=(xmin+0.03*(xmax-xmin),ymax-0.01*(ymax-ymin)), xycoords='data',xytext=(xmin+0.05*(xmax-xmin),ymax-0.08*(ymax-ymin)),fontsize=9,verticalalignment='center_baseline')
+            axNH3vCloud.annotate('2024',xy=(xmin+0.03*(xmax-xmin),ymax-0.01*(ymax-ymin)), xycoords='data',xytext=(xmin+0.05*(xmax-xmin),ymax-0.14*(ymax-ymin)),fontsize=9,verticalalignment='center_baseline')
+            axNH3vCloud.annotate('2025',xy=(xmin+0.03*(xmax-xmin),ymax-0.01*(ymax-ymin)), xycoords='data',xytext=(xmin+0.05*(xmax-xmin),ymax-0.20*(ymax-ymin)),fontsize=9,verticalalignment='center_baseline')
+            
         #######################################################################
 
     if axNH3vIRTF!=False and blendweightIRTF.any(): # fNH3 versus IRTF
@@ -1188,9 +1206,9 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         print("######### cb=",cb)
         #plot_patch(patch,LatLims,LonLims,CM2,LonRng,colorscale,axis,
         #               cbarplot=True,cbar_title="Test",cbar_reverse=False,vn=0.10,vx=0.20,n=6)
-        fNH3_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(fNH3_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
+        fNH3_patch_mb,vn,vx,tx_fNH3,cbar=PP.plot_patch(fNH3_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,ctbls[0],
-                                         axNH3,cbarplot=cb,n=11,
+                                         axNH3,cbarplot=cb,n=5,
                                          vn=fNH3low,
                                          vx=fNH3high)
         axNH3.set_ylabel(collection.replace('-','\n'),rotation='horizontal',fontsize=6)
@@ -1201,7 +1219,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
 
         PCld_patch_mb=MP.make_patch(blendweightPCloud,LatLims,[360-LonLims[1],360-LonLims[0]],
                                     180,180)
-        PCld_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(PCld_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
+        PCld_patch_mb,vn,vx,tx_PCld,cbar=PP.plot_patch(PCld_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,ctbls[1],
                                          axCH4,cbarplot=cb,
                                          n=5,vn=PCldlow,vx=PCldhigh)
@@ -1224,10 +1242,22 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         axRGB.yaxis.set_label_coords(-0.10,0.15)
         axRGB.tick_params('x', labelsize=8)
 
+        Lons=[360-LonLims[1],360-LonLims[0]]
+
+        if cont:
+            temp=PC.plot_contours_on_patch(axNH3,fNH3_patch_mb,LatLims,Lons,
+                                            tx_fNH3, frmt='%3.0f', clr='k')
+            temp=PC.plot_contours_on_patch(axCH4,PCld_patch_mb,LatLims,Lons,
+                                            tx_PCld, frmt='%3.0f', clr='r')
+            temp=PC.plot_contours_on_patch(axRGB,fNH3_patch_mb,LatLims,Lons,
+                                            tx_fNH3, frmt='%3.0f', clr='k')
+            temp=PC.plot_contours_on_patch(axRGB,PCld_patch_mb,LatLims,Lons,
+                                            tx_PCld, frmt='%3.0f', clr='r')
+
 
         IRTF_patch_mb=MP.make_patch(blendweightIRTF,LatLims,[360-LonLims[1],360-LonLims[0]],
                                     180,180)
-        IRTF_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(np.log10(IRTF_patch_mb),LatLims,[360-LonLims[1],360-LonLims[0]],
+        IRTF_patch_mb,vn,vx,tx_fNH3,cbar=PP.plot_patch(np.log10(IRTF_patch_mb),LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,"gist_heat",
                                          axIRTF,cbarplot=cb,
                                          n=5,vn=1.5,vx=3.5)
@@ -1244,7 +1274,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
 
         CH4889_patch_mb=MP.make_patch(blendweightCH4889,LatLims,[360-LonLims[1],360-LonLims[0]],
                                     180,180)
-        CH4889_patch_mb,vn,vx,tx_fNH3=PP.plot_patch(CH4889_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
+        CH4889_patch_mb,vn,vx,tx_fNH3,cbar=PP.plot_patch(CH4889_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                          180,180,"gray",
                                          axCH4889,cbarplot=cb,
                                          n=5,vn=80,vx=230)

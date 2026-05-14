@@ -1,7 +1,9 @@
 def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
                     LatLims,LonLimsWest,LonRng,PlotCM,fnout,
-                    amfdata,coef,txin,xlow,xhigh,ylow,yhigh,figxy,
-                    ct,pathout,Ltitle,Rtitle,Level='L3',cont=False,FiveMicron=False,
+                    amfdata,coef,txinx,txiny,xlow,xhigh,ylow,yhigh,figxy,
+                    ctbls,pathout,Ltitle,Rtitle,Level='L3',
+                    maptitles=['','',''],
+                    cont=False,FiveMicron=False,
                     cbar_rev=False,swap_xy=False,axis_inv=False,cbar_title="Test",
                     suptitle="Test",ROI=False,smoothcont=0,dataversion=2):
     """
@@ -48,7 +50,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
         DESCRIPTION.
     figxy : TYPE
         DESCRIPTION.
-    ct : TYPE
+    ctbls : TYPE
         DESCRIPTION.
     pathout : TYPE
         DESCRIPTION.
@@ -96,6 +98,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     import plot_roi_scatter as prs
     from scipy.ndimage import gaussian_filter
 
+    statistics={}
     print("############################ dataversion= ",dataversion)
     LonLimsEast=[360-LonLimsWest[1],360-LonLimsWest[0]]
 
@@ -163,7 +166,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     axs3[0].tick_params(axis='both', which='major', labelsize=9)
     axs3[0].set_ylabel("PG Lat. (deg)",fontsize=10)
     #axs3[0].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-    axs3[0].set_title("Cloud Pressure (mb)",fontsize=10,y=1.0)
+    axs3[0].set_title(maptitles[0],fontsize=10,y=1.0)
 
     axs3[1].grid(linewidth=0.2)
     axs3[1].ylim=[-45.,45.]
@@ -175,7 +178,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     axs3[1].tick_params(axis='both', which='major', labelsize=9)
     axs3[1].set_ylabel("PG Lat. (deg)",fontsize=10)
     #axs3[1].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-    axs3[1].set_title("Context Image (673/502/395nm)",fontsize=10,y=0.98)
+    axs3[1].set_title(maptitles[1],fontsize=10,y=0.98)
 
     axs3[2].grid(linewidth=0.2)
     axs3[2].ylim=[-45.,45.]
@@ -187,7 +190,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     axs3[2].tick_params(axis='both', which='major', labelsize=9)
     axs3[2].set_ylabel("PG Lat. (deg)",fontsize=10)
     axs3[2].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-    axs3[2].set_title("Ammonia Mole Fraction (ppm)",fontsize=10,y=0.95)
+    axs3[2].set_title(maptitles[2],fontsize=10,y=0.95)
 
     #axs3[0].set_adjustable('box') 
     #axs3[1].set_adjustable('box') 
@@ -199,14 +202,17 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     #Testy_patch=MP.make_patch(mapydata,LatLims,LonLimsEast,PlotCM,LonRng)
 
     cbttl="Mean="+str(np.mean(patchy))[:4]+" $\pm$ "+str(np.std(patchy))[:3]
+    statistics |={'mean_y':np.mean(patchy),'mean_x':np.mean(patchx),
+                  'stdv_y':np.std(patchy),'stdv_x':np.std(patchx)}
+    #cbttl='test while mean not working for CI or AOI'
     tp,vn,vx,tx,cbary=PP.plot_patch(patchy,LatLims,LonLimsEast,
-                                     PlotCM,LonRng,ct,
+                                     PlotCM,LonRng,ctbls[1],
                                      axs3[0],'%3.2f',
                                      cbar_reverse=cbar_rev,vn=ylow,vx=yhigh,n=6,
                                      cbar_title=cbttl)
     #Testy_patch=MP.make_patch(mapydata,LatLims,LonLimsEast,PlotCM,LonRng)
     tp,vn,vx,tx,cbarRGB=PP.plot_patch(RGBpatch,LatLims,LonLimsEast,
-                                     PlotCM,LonRng,"terrain_r",
+                                     PlotCM,LonRng,ctbls[0],
                                      axs3[1],'%3.2f',
                                      cbar_reverse=False,vn=xlow,vx=xhigh,n=6,
                                      cbar_title=cbar_title,cbarvis=False)
@@ -214,7 +220,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     #Testy_patch=MP.make_patch(mapydata,LatLims,LonLimsEast,PlotCM,LonRng)
     cbttl="Mean="+str(np.mean(patchx))[:3]+" $\pm$ "+str(np.std(patchx))[:2]
     tp,vn,vx,tx,cbarx=PP.plot_patch(patchx,LatLims,LonLimsEast,
-                                     PlotCM,LonRng,"terrain_r",
+                                     PlotCM,LonRng,ctbls[0],
                                      axs3[2],'%3.2f',
                                      cbar_reverse=False,vn=xlow,vx=xhigh,n=6,
                                      cbar_title=cbttl)
@@ -227,42 +233,56 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
 
     if cont:
         patchxsmth = gaussian_filter(patchx, sigma=smoothcont)
-        temp=PC.plot_contours_on_patch(axs3[0],patchxsmth,LatLims,LonLimsEast,
-                                       txin,frmt='%3.0f',clr='k')
+        temp=PC.plot_contours_on_patch(axs3[2],patchxsmth,LatLims,LonLimsEast,
+                                       txinx,frmt='%3.0f',clr='k')
+        patchysmth = gaussian_filter(patchy, sigma=smoothcont)
+        temp=PC.plot_contours_on_patch(axs3[0],patchysmth,LatLims,LonLimsEast,
+                                       txiny,frmt='%3.0f',clr='r')
 
     if coef==0.0:
         correction='_C0'
     else:
         correction='_C1'
     
-    if Level=='L2':
-        fnout=fnout.replace('TNH3',Rtitle)
-    elif Level=='L3':
-        fnout=fnout.replace('fNH3',Rtitle)
+    if dataversion==2:
+        if Level=='L2':
+            fnout=fnout.replace('TNH3',Rtitle)
+        elif Level=='L3':
+            fnout=fnout.replace('fNH3',Rtitle)
+        axs1.scatter(patchx,patchy,marker="o",s=3.0,color='grey',alpha=0.2,label='All')
+    elif dataversion=='H':
+        fnout=fnout.replace('.png',Rtitle+'.png')
+        axs1.scatter(patchx,patchy,marker=".",s=2,color='grey',linewidths=0,alpha=0.2,label='All')
+    
     print(patchx.shape,patchy.shape)
+    
     
     if swap_xy and not ROI:
         roilabel,mean1,stdv1,mean2,stdv2,BZ=pms.plot_map_scatter(patchx,patchy,PlotCM,
-                 LatLims,axs1,xlow,xhigh,ylow,yhigh,FiveMicron,axis_inv=axis_inv,dataversion=dataversion)
+                 LatLims,axs1,xlow,xhigh,ylow,yhigh,FiveMicron,axis_inv=axis_inv,
+                 dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
         print("Case 1")
     if not swap_xy and not ROI:     
         roilabel,mean1,stdv1,mean2,stdv2,BZ=pms.plot_map_scatter(patchy,patchx,PlotCM,
-                 LatLims,axs1,ylow,yhigh,xlow,xhigh,FiveMicron,axis_inv=axis_inv,dataversion=dataversion)
+                 LatLims,axs1,ylow,yhigh,xlow,xhigh,FiveMicron,axis_inv=axis_inv,
+                 dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
         print("Case 2")
     
     #print("##################### mean1,stdv1,mean2,stdv2= ",mean1,stdv1,mean2,stdv2)
     #print("##################### np.mean(patchx),np.mean(patchy)= ",np.mean(patchx),np.mean(patchy))
     
     if swap_xy and ROI:
-        print("Calling ROI")
+        print("Calling ROI",maptitles[2],maptitles[0])
         roilabel,mean1,stdv1,mean2,stdv2=prs.plot_roi_scatter(patchx,patchy,PlotCM,
                  LatLims,LonLimsEast,axs1,xlow,xhigh,ylow,yhigh,FiveMicron,
-                 axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,dataversion=dataversion)
+                 axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
+                 dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
     if not swap_xy and ROI:    
-        print("Calling ROI")
+        print("Calling ROI",maptitles[2],maptitles[0])
         roilabel,mean1,stdv1,mean2,stdv2=prs.plot_roi_scatter(patchy,patchx,PlotCM,
                  LatLims,LonLimsEast,axs1,ylow,yhigh,xlow,xhigh,FiveMicron,
-                 axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,dataversion=dataversion)
+                 axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
+                 dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
         
         
     axs3[1].tick_params(axis='both', which='major', labelsize=9)
@@ -270,7 +290,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     ROIcolors={"Hot Spot":'r',
          "Gyre":'g',
          "Cloud Plume":'b',
-         "NEB Reference":'k'}           
+         "Reference":'k'}           
     if ROI:
         for R in ROI:
             
@@ -320,11 +340,11 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     #subfig_left.subplots_adjust(left=0.01, right=0.95, top=0.92, bottom=0.10)
     #for ax in axs3:
     #    ax.tick_params(axis='y', pad=1)
-    for ax in axs3:
-        print(ax.get_position())
+    #for ax in axs3:
+    #    print(ax.get_position())
     fig3.savefig(pathout+fnout[:-4]+' scatter.png',dpi=300)
     
     if not ROI:
         meanamf=False
 
-    return(dateobs,roilabel,mean1,stdv1,mean2,stdv2)#,meanamf)
+    return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,axs3)#,meanamf)

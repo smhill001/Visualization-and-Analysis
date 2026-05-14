@@ -54,7 +54,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                         CMpref='subobs',LonSys='2',showbands=False,
                         coef=[0.,0.],subproj='',figxy=[8.0,4.0],FiveMicron=False,
                         plotoptions=["contours","surface"],
-                        ROI=False,
+                        ROI=False,segment=False,
                         LimbCorrection=False,dataversion=2,smoothcont=0):
     """
     Created on Sun Nov  6 16:47:21 2022
@@ -90,18 +90,21 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     sys.path.append('C:/Astronomy/Projects/SAS 2021 Ammonia/Data-Management-and-Access/Tests')
 
     import os
+    import csv
     import read_fits_V2 as RF2
     import numpy as np
     from astropy.io import fits
     sys.path.append('./Maps')
     #import read_fits_map_L2_L3 as RFM
     import make_patch as MP
+    import ROI_Script as ROIS
     import map_and_context as mac
     import map_and_scatter as mas
     import map_and_scatter_SCubed as masc
     import map_cloudsurface as msurf
     import read_fits_V2 as RF2
     import L4_Jup_Map_Plot_V2 as L4M    
+    import find_blob as FB
     ctbls=["terrain_r","Blues"]
     if  dataversion==1 or dataversion==2:
         fNH3low=60
@@ -113,6 +116,10 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         fNH3high=300
         PCldlow=1000
         PCldhigh=3500
+        AOIlow=0.1
+        AOIhigh=0.4
+        CIlow=0.35
+        CIhigh=0.75
         
     micronlow=0.5
     micronhigh=3.5
@@ -134,12 +141,18 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                         LimbCorrection=LimbCorrection,
                                                         dataversion=dataversion)
             elif dataversion=="H":
-                PCldhdr,PClddata,fNH3hdr,fNH3data,RGB,RGB_CM,RGBtime= \
+                PCldhdr,PClddata,fNH3hdr,fNH3data,CIhdr,CIdata,AOIhdr,AOIdata,RGB,RGB_CM,RGBtime= \
                                 RF2.read_fits_map_L3_V2(obskey=obskey,LonSys=LonSys,
                                                         Level="L3",
                                                         target=target,
                                                         LimbCorrection=LimbCorrection,
                                                         dataversion=dataversion)
+                #print('CM'+LonSys)
+                #print()
+                #print(AOIhdr)
+                #print(fNH3hdr['CM'+LonSys])
+                AOICM=AOIhdr['CM'+LonSys]
+                CICM=CIhdr['CM'+LonSys]
             fNH3CM=fNH3hdr['CM'+LonSys]
             PCldCM=PCldhdr['CM'+LonSys]
         
@@ -219,7 +232,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                        LonRng,fNH3PlotCM,
                                                        amfdata,coef[0],fNH3low,fNH3high,
                                                        showbands,FiveMicron,figxy,
-                                                       ctbls[0],pathmapplots,Level='L3',cont=("contours" in plotoptions),
+                                                       ctbls[0],pathmapplots,Level='L3',
+                                                       cont=("contours" in plotoptions),
                                                        suptitle="Ammonia Mole Fraction",
                                                        cbar_title="Ammonia Mole Fraction (ppm)",
                                                        ROI=ROI,smoothcont=smoothcont,dataversion=dataversion)
@@ -240,6 +254,37 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                         cbar_rev=True,
                                                         cbar_title="Cloud Top Pressure (mb)",
                                                         ROI=ROI,smoothcont=smoothcont,dataversion=dataversion)
+
+
+    ###########################################################################
+    ## Just RGB and Cloud Pressure
+    ###########################################################################
+    if dataversion=='H':
+        AOI_patch,TestAOI,tx_AOI,fnAOI,RGB4Display=mac.map_and_context(AOIdata,
+                                                            AOIhdr["DATE-OBS"],AOIhdr["BUNIT"],AOIhdr["FILENAME"],
+                                                            RGB,RGBtime,
+                                                            LonSys,CoLatLims,NH3LonLims,
+                                                            LonRng,fNH3PlotCM,
+                                                            amfdata,coef[1],AOIlow,AOIhigh,
+                                                            showbands,FiveMicron,figxy,
+                                                            'Greys_r',pathmapplots,Level='L3',cont=("contours" in plotoptions),
+                                                            suptitle="Altitude Opacity Index",
+                                                            cbar_rev=False,
+                                                            cbar_title="AOI",
+                                                            ROI=ROI,smoothcont=smoothcont,dataversion=dataversion)
+
+        CI_patch,TestCI,tx_CI,fnCI,RGB4Display=mac.map_and_context(CIdata,
+                                                            CIhdr["DATE-OBS"],CIhdr["BUNIT"],CIhdr["FILENAME"],
+                                                            RGB,RGBtime,
+                                                            LonSys,CoLatLims,NH3LonLims,
+                                                            LonRng,fNH3PlotCM,
+                                                            amfdata,coef[1],CIlow,CIhigh,
+                                                            showbands,FiveMicron,figxy,
+                                                            'Spectral',pathmapplots,Level='L3',cont=("contours" in plotoptions),
+                                                            suptitle="Color Index",
+                                                            cbar_rev=True,
+                                                            cbar_title="CI",
+                                                            ROI=ROI,smoothcont=smoothcont,dataversion=dataversion)
 
     if "surface" in plotoptions:
         print("#############",PCld_patch.shape,fNH3_patch_mb.shape)
@@ -273,149 +318,128 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     ###########################################################################
     #mas.map_and_scatter(fNH3_patch_mb,PCld_patch,PClddata,fNH3hdr['DATE-OBS'],LonSys,
 
+
     if "scatter" in plotoptions:
-        dateobs,roilabel,mean1,stdv1,mean2,stdv2= \
+        dateobs,roilabel,mean1,stdv1,mean2,stdv2,axsmaps= \
             masc.map_and_scatter_SCubed(fNH3_patch_mb,PCld_patch,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
             CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
-            amfdata,coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
-            figxy,ctbls[1],pathmapplots,"PCloud & fNH3 (contours)",
-            "PCloud vs fNH3",Level='L3',cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
-            axis_inv=True,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
+            amfdata,coef[0],tx_fNH3,tx_PCld,fNH3low,fNH3high,PCldlow,PCldhigh,
+            figxy,ctbls,pathmapplots,"PCloud & fNH3",
+            "PCloud vs fNH3",Level='L3',maptitles=["Cloud Pressure (mb)",
+                       "Context Image (673/502/395nm)",
+                       "Ammonia Mole Fraction (ppm)"],
+            cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
+            axis_inv=True,ROI=ROI,cont=("contours" in plotoptions),
+            smoothcont=smoothcont,dataversion=dataversion)
         ROIout={obskey:{'dateobs':dateobs,'roilabel':roilabel,'mean1':mean1,'stdv1':stdv1,
                 'mean2':mean2,'stdv2':stdv2}}#,'meanamf':meanamf}}
         print("############### ROIout= ",ROIout)
+        print()
+        #ROIout_subdict=ROIout[obskey]
+        #keys=ROIout_subdict.keys()
+        #rows=zip(*ROIout_subdict.values())
+        #with open(pathmapplots+obskey+' fNH3vPCld ROI.csv','w',newline='') as f:
+        #    writer=csv.writer(f)
+        #    writer.writerow(keys)
+        #    writer.writerow(rows)
+        ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' fNH3vPCld ROI.csv')
+        
+        if segment:
+            #NH3thresh=135 #standard value
+            NH3thresh=145 #alt value
+            Cloudthresh=1800
+            #NEDFthresh=1950
+            NEDFthresh=2030
+            fNH3_mask, labeled_fNH3, props_fNH3= \
+                FB.process_blob(fNH3_patch_mb, PCld_patch, CoLatLims, NH3LonLims, 
+                                timearray='None',
+                                threshold_abs=NH3thresh, mode='max')
+            
+            Plum_mask, labeled_Plum, props_Plum= \
+                FB.process_blob(PCld_patch, fNH3_patch_mb, CoLatLims, NH3LonLims, 
+                                timearray='None', 
+                                threshold_abs=Cloudthresh, mode='min')
+            
+            NEDF_mask, labeled_NEDF, props_NEDF= \
+                FB.process_blob(PCld_patch, fNH3_patch_mb, CoLatLims, NH3LonLims, 
+                                timearray='None', 
+                                threshold_abs=NEDFthresh, mode='max')
+                
+            import make_lat_lon_str as MLLS
+            latstr,lonstr=MLLS.make_lat_lon_str(CoLatLims,NH3LonLims)
+            collection='HST'
+            FB.export_regions_to_csv(props_fNH3, NH3thresh, 
+                                     pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NH3thresh)+" fNH3.csv")
+            FB.export_regions_to_csv(props_Plum, Cloudthresh, 
+                                     pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(Cloudthresh)+" Plum.csv")
+            FB.export_regions_to_csv(props_NEDF, NEDFthresh, 
+                                     pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NEDFthresh)+" NEDF.csv")
+            print("$$$$$$$$$$$$$$$$$$$$$$$$$",CoLatLims,NH3LonLims)
+        
+            FB.plot_regions_on_axis(axsmaps[1], labeled_fNH3, props_fNH3,
+                                    lon_lims=NH3LonLims,LatLims=CoLatLims,
+                                    plot_contours=False, plot_masks=True,
+                                    plot_labels=False,contour_color='C0')
+            FB.plot_regions_on_axis(axsmaps[1], labeled_Plum, props_Plum,
+                                    lon_lims=NH3LonLims,LatLims=CoLatLims,
+                                    plot_contours=False, plot_masks=True,
+                                    plot_labels=False, contour_color='white')
+            FB.plot_regions_on_axis(axsmaps[1], labeled_NEDF, props_NEDF,
+                                    lon_lims=NH3LonLims,LatLims=CoLatLims,
+                                    plot_contours=False, plot_masks=True,
+                                    plot_labels=False, contour_color='black')
+
+
+        if dataversion=='H':
+            ctbls=['Spectral','Greys_r']
+            dateobs,roilabel,mean1,stdv1,mean2,stdv2,axsmaps= \
+                masc.map_and_scatter_SCubed(CI_patch,AOI_patch,AOIdata,RGB4Display,AOIhdr['DATE-OBS'],LonSys,
+                CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
+                amfdata,coef[0],tx_AOI,tx_CI,CIlow,CIhigh,AOIlow,AOIhigh,
+                figxy,ctbls,pathmapplots,"PCloud & fNH3",
+                "AOI vs CI",Level='L3',maptitles=["Altitude Opacity Index (AOI)",
+                           "Context Image (673/502/395nm)",
+                           "Color Index (CI)"],
+                cbar_rev=False,cbar_title="Cloud-top Pressure (mb)",
+                axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
+            ROIout={obskey:{'dateobs':dateobs,'roilabel':roilabel,'mean1':mean1,'stdv1':stdv1,
+                    'mean2':mean2,'stdv2':stdv2}}#,'meanamf':meanamf}}
+            ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' AOIvCI ROI.csv')
+            print("############### ROIout= ",ROIout)
+        
+
         
     if 'resid' in plotoptions:
         LonLimsEast=[360-NH3LonLims[1],360-NH3LonLims[0]]
-
-        """
-        figrc,axsrc=pl.subplots(2,1,figsize=(5,5), dpi=150, facecolor="white",
-                                sharex=True,sharey=True)
-        figrc.suptitle(obskey+" Normalized Residuals")
-
-        for i in [0,1]:
-            axsrc[i].grid(linewidth=0.2)
-            axsrc[i].ylim=[-45.,45.]
-            axsrc[i].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
-            axsrc[i].set_xticks(np.linspace(450,0,31), minor=False)
-            xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
-            axsrc[i].set_xticklabels(xticklabels.astype(int))
-            axsrc[i].set_yticks(np.linspace(-45,45,7), minor=False)
-            axsrc[i].tick_params(axis='both', which='major', labelsize=9)
-            axsrc[i].set_ylabel("PG Lat. (deg)",fontsize=10)
-            #axsrc[0].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-        axsrc[0].set_title("Normalized Residual",fontsize=10)
-        axsrc[1].set_title("Box Correlation (5x5 deg)",fontsize=10)
-        axsrc[1].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-        """
-
-        figz = pl.figure(figsize=(8,4.5),dpi=150,facecolor="white")
-       
-       
-        gz = figz.add_gridspec(
-            3, 2,
-            left=-0.05,
-            right=0.98,
-            top=0.94,
-            bottom=0.10,
-            wspace=0.0,
-            hspace=0.4
-        )
-       
-        # Left column (your 3 stacked plots)
-        axsz = [figz.add_subplot(gz[i, 0]) for i in range(3)]
-        axsz[0].sharex(axsz[2])
-        axsz[2].sharex(axsz[2])
-        axsz[0].sharey(axsz[2])
-        axsz[2].sharey(axsz[2])
-        
-        # Right column (whatever goes there)
-        axs1 = figz.add_subplot(gz[:, 1])
-        #subfigs[0].set_facecolor('lightblue')
-        #subfigs[0].suptitle('subfigs[0]\nLeft side')
-        #subfigs[0].supxlabel('xlabel for subfigs[0]')
-        
-        #axs1 = subfigs[1].subplots(1)
-        #axs1 = subfig_right.subplots(1)
-       
-        axsz[0].grid(linewidth=0.2)
-        axsz[0].ylim=[-45.,45.]
-        axsz[0].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
-        axsz[0].set_xticks(np.linspace(450,0,31), minor=False)
-        xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
-        axsz[0].set_xticklabels(xticklabels.astype(int))
-        axsz[0].set_yticks(np.linspace(-45,45,7), minor=False)
-        axsz[0].tick_params(axis='both', which='major', labelsize=9)
-        axsz[0].set_ylabel("PG Lat. (deg)",fontsize=10)
-        #axsz[0].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-        axsz[0].set_title("Context Image (673/502/395nm)",fontsize=10,y=1.0)
-
-        axsz[1].grid(linewidth=0.2)
-        axsz[1].ylim=[-45.,45.]
-        axsz[1].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
-        axsz[1].set_xticks(np.linspace(450,0,31), minor=False)
-        xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
-        axsz[1].set_xticklabels(xticklabels.astype(int))
-        axsz[1].set_yticks(np.linspace(-45,45,7), minor=False)
-        axsz[1].tick_params(axis='both', which='major', labelsize=9)
-        axsz[1].set_ylabel("PG Lat. (deg)",fontsize=10)
-        #axsz[1].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-        axsz[1].set_title("Normalized Residual",fontsize=10,y=0.98)
-
-        axsz[2].grid(linewidth=0.2)
-        axsz[2].ylim=[-45.,45.]
-        axsz[2].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
-        axsz[2].set_xticks(np.linspace(450,0,31), minor=False)
-        xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
-        axsz[2].set_xticklabels(xticklabels.astype(int))
-        axsz[2].set_yticks(np.linspace(-45,45,7), minor=False)
-        axsz[2].tick_params(axis='both', which='major', labelsize=9)
-        axsz[2].set_ylabel("PG Lat. (deg)",fontsize=10)
-        axsz[2].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
-        axsz[2].set_title("Box Correlation (5x5 deg)",fontsize=10,y=0.95)
-
-        #axs3[0].set_adjustable('box') 
-        #axs3[1].set_adjustable('box') 
- 
-       
-        vn,vx=-0.8,0.8
-        pp.plot_patch(RGB4Display,CoLatLims,LonLimsEast,PCldPlotCM,LonRng,'BrBG',axsz[0],
-                   cbarplot=True,cbar_title="",cbar_reverse=False,vn=vn,vx=vx,n=6)
-        
-        axs1.set_title("Ammonia Mole Fraction versus Cloud Pressure",fontsize=12)
-        axs1.set_box_aspect(1)
         norm_A,norm_B,resid_AB=residual_2d(fNH3_patch_mb,PCld_patch)
-        if dataversion=='H':
-            vn,vx=-0.8,0.8
-        else:
-            vn,vx=-1.1,1.1
-        pp.plot_patch(resid_AB,CoLatLims,LonLimsEast,PCldPlotCM,LonRng,'BrBG',axsz[1],
-                   cbarplot=True,cbar_title="",cbar_reverse=False,vn=vn,vx=vx,n=6)
-        
+
+
         if 'correl' in plotoptions:
             #figc,axsc=pl.subplots(1,figsize=(5,5), dpi=150, facecolor="white")
             #figc.suptitle(obskey+" Correlation")
     
             cc2d=rolling_corr2d(norm_A,norm_B,5,dataversion=dataversion)
             print("########### cc2d.shape= ",cc2d.shape,np.max(cc2d))
-            pp.plot_patch(cc2d,CoLatLims,LonLimsEast,PCldPlotCM,LonRng,'seismic_r',axsz[2],
-                       cbarplot=True,cbar_title="",cbar_reverse=False,vn=-1.0,vx=1.0,n=6,alpha=0.7)
-            
-        ROIcolors={"Hot Spot":'r',
-             "Gyre":'g',
-             "Cloud Plume":'b',
-             "NEB Reference":'k'}
-            
-        if ROI:
-            for R in ROI:
-                for i in [0,1]:
-                    axsz[i].plot(np.array([ROI[R][2]+ROI[R][3],ROI[R][2]-ROI[R][3],
-                                  ROI[R][2]-ROI[R][3],ROI[R][2]+ROI[R][3],
-                                  ROI[R][2]+ROI[R][3]]),
-                                  90.-np.array([ROI[R][0],ROI[R][0],ROI[R][1],
-                                  ROI[R][1],ROI[R][0]]),color=ROIcolors[R])
-                    
-        figz.savefig(pathmapplots+fnNH3[:-4]+' resid-correl.png',dpi=300)
+
+        ctbls=["seismic_r","BrBG"]
+        cc2dlow=-1
+        cc2dhigh=1
+        resid_ABlow=-0.8
+        resid_ABhigh=0.8
+
+        dateobs,roilabel,mean1,stdv1,mean2,stdv2,axsmaps= \
+            masc.map_and_scatter_SCubed(cc2d,resid_AB,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
+            CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
+            amfdata,coef[0],tx_fNH3,tx_PCld,cc2dlow,cc2dhigh,resid_ABlow,resid_ABhigh,
+            figxy,ctbls,pathmapplots,"Normalized fNH3 Residuals and Box Correlation",
+            "Resid vs Correl",Level='L3',maptitles=["Normalized Residuals (fNH3 - PCld)",
+                       "Context Image (673/502/395nm)",
+                       "5x5 deg Box Correlation"],cbar_rev=False,cbar_title="Cloud-top Pressure (mb)",
+            axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
+        ROIout={obskey:{'dateobs':dateobs,'roilabel':roilabel,'mean1':mean1,'stdv1':stdv1,
+                'mean2':mean2,'stdv2':stdv2}}#,'meanamf':meanamf}}
+        ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' residvcc2d ROI.csv')
+
 
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs 5um radiance)

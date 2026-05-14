@@ -1,6 +1,6 @@
 def plot_map_scatter(patch1,patch2,Real_CM2,LatLims,axscor,PCldlow,PCldhigh,
                  fNH3low,fNH3high,FiveMicron,axis_inv=False,Bands=False,
-                 dataversion=2):
+                 dataversion=2,xaxistitle='',yaxistitle=''):
     """
     PURPOSE:    Takes two map patches and makes a scatter plot
     CALLS:      n/a
@@ -124,6 +124,9 @@ def plot_map_scatter(patch1,patch2,Real_CM2,LatLims,axscor,PCldlow,PCldhigh,
         axscor.set_xlabel("5um Radiance (Log10(arb. units)",fontsize=10)
     else:
         axscor.set_xlabel("Ammonia Mole Fraction (ppm)",fontsize=10)
+        
+    axscor.set_xlabel=xaxistitle
+    axscor.set_ylabel=yaxistitle
                     
     axscor.legend(fontsize=7,ncols=4,labelcolor='mfc')
     

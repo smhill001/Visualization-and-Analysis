@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['L3_Jup_Map_Plot_V2.py', 'map_and_scatter_SCubed.py', '..\\Jupiter_NH3_Analysis_P3\\HST\\SCubed2025.py', '..\\Jupiter_NH3_Analysis_P3\\HST\\read_HST_GO.py', '..\\Jupiter_NH3_Analysis_P3\\Maps\\PlanetMapper_Test.py', 'plot_roi_scatter.py', 'plot_map_scatter.py', 'plot_patch.py']
+recent_files = ['..\\Jupiter_NH3_Analysis_P3\\HST\\SCubed2025.py', 'map_and_scatter_SCubed.py', '..\\Jupiter_NH3_Analysis_P3\\HST\\read_HST_GO.py', '..\\Jupiter_NH3_Analysis_P3\\Maps\\PlanetMapper_Test.py', 'L3_Jup_Map_Plot_V2.py', 'L4_Jup_Map_Plot_V2.py', 'L4_map_script.py', 'plot_blob_features.py', 'map_cloudsurface.py']
 
 [main]
 version = 0.2.0

@@ -52,7 +52,7 @@ def find_blob(image_to_segment, intensity_image,threshold_abs=None, mode='max'):
     return blob_mask,labeled_image,props_data,props_intensity
 
 
-def process_blob(image_to_segment, intensity_image, lats, lon_lims, timearray=None, threshold_abs=None, mode='max'):
+def process_blob(image_to_segment, intensity_image, LatLims, lon_lims, timearray=None, threshold_abs=None, mode='max'):
     """
     Segments blobs, converts coordinates to lat/lon, merges regionprops from both images,
     sorts by longitude, and relabels regions accordingly.
@@ -60,7 +60,7 @@ def process_blob(image_to_segment, intensity_image, lats, lon_lims, timearray=No
     Parameters:
         image_to_segment (ndarray): Image used for segmentation.
         intensity_image (ndarray): Image used for intensity-based measurement.
-        lats (ndarray): Latitude array (1D or 2D) from the image grid.
+        LatLims (ndarray): Latitude array (1D or 2D) from the image grid.
         lon_lims (tuple): (min_lon, max_lon) representing the longitude extent.
         threshold_abs (float): Threshold for segmentation.
         mode (str): 'max' or 'min' for segmentation.
@@ -79,7 +79,7 @@ def process_blob(image_to_segment, intensity_image, lats, lon_lims, timearray=No
     )
 
     def rowcol_to_latlon(row, col):
-        lat = (90 - lats[0]) - row
+        lat = (90 - LatLims[0]) - row
         lon = lon_lims[1] - col
         return lat, lon
 
@@ -184,7 +184,7 @@ def process_blob(image_to_segment, intensity_image, lats, lon_lims, timearray=No
 
 import csv
 
-def export_regions_to_csv(merged_props_sorted, filepath):
+def export_regions_to_csv(merged_props_sorted, threshold, filepath):
     """
     Export merged region properties to a CSV using only Python's built-in csv module.
 
@@ -209,7 +209,8 @@ def export_regions_to_csv(merged_props_sorted, filepath):
         'seg_intensity_max',
         'intensity_mean',
         'intensity_min',
-        'intensity_max'
+        'intensity_max',
+        'threshold'
     ]
 
     # Open CSV file and write header + rows
@@ -245,6 +246,7 @@ def export_regions_to_csv(merged_props_sorted, filepath):
                 row['jd_time'] = region['times']['jd_time']
             if 'fits_time' in region['times']:
                 row['fits_time'] = region['times']['fits_time']
+            row['threshold'] = threshold
 
 
             writer.writerow(row)
@@ -262,21 +264,21 @@ def plot_regions_on_axis(
     plot_masks=False,
     contour_color='white',
     mask_alpha=0.3,
-    lats=None,
+    LatLims=None,
     lon_lims=None,
 ):
     import numpy as np
     import matplotlib.pyplot as plt
     from skimage.measure import find_contours
 
-    if lats is None or lon_lims is None:
-        raise ValueError("Both 'lats' and 'lon_lims' must be provided to convert to lat-lon coordinates.")
+    if LatLims is None or lon_lims is None:
+        raise ValueError("Both 'LatLims' and 'lon_lims' must be provided to convert to lat-lon coordinates.")
 
     unique_labels = np.unique(labeled_image)
     unique_labels = unique_labels[unique_labels != 0]  # skip background
 
     def rowcol_to_latlon(row, col):
-        lat = (90 - lats[0]) - row
+        lat = (90 - LatLims[0]) - row
         lon = lon_lims[1] - col
         return lat, lon
 

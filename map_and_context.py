@@ -29,7 +29,7 @@ def make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
 def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,LonLimsWest,LonRng,PlotCM,
                     amfdata,coef,low,high,showbands,FiveMicron,figxy,ct,pathout,
                     Level='L3',suptitle="Test",cbar_rev=False,cont=False,cbar_title="Test",
-                    ROI=False,smoothcont=0,dataversion=2):
+                    ROI=False,smoothcont=0,dataversion=2,noplot=False):
     """
     PURPOSE:    To create a pair of plots, the right one representing a mapped
                 data set, e.g., ammonia abundance or cloud pressure, and the 
@@ -231,5 +231,6 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
     print("############# pathout=",pathout)
     print("############# fnout=",fnout)
     fig1.savefig(pathout+fnout,dpi=300)
+    pl.close(fig1)
     
     return(data_patch,mapdata,tx,fnout,RGB4Display)

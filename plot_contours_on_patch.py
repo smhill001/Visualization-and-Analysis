@@ -5,7 +5,8 @@ Created on Tue May 13 09:10:36 2025
 @author: smhil
 """
 
-def plot_contours_on_patch(ax,CH4Abs_conv,LatLims,LonLims,lvls=[0.71,0.73,0.75,0.77,0.79],frmt='%3.1e',clr='w'):
+def plot_contours_on_patch(ax,CH4Abs_conv,LatLims,LonLims,
+                           lvls=[0.71,0.73,0.75,0.77,0.79],frmt='%3.1e',clr='w'):
     """
     PURPOSE: Overlay countours of NH3 absorption data on Jovian maps.
              Specifically designed for equivalent widths with mean values of
