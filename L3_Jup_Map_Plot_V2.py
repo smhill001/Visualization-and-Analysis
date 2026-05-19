@@ -1,4 +1,4 @@
-from config_VA import config_VA
+#from config_VA import config_VA
 
 import numpy as np
 from scipy.signal import convolve2d

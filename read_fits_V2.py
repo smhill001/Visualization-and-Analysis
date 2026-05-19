@@ -1,4 +1,7 @@
 from config_VA import config_VA
+from config_VA import Host_path
+import socket
+hostname = socket.gethostname()
 
 def read_fits_L3_V2_helper(pathandfile,target="Jupiter",LonSys='3',
                      LimbCorrection=False,dataversion=2):
@@ -74,7 +77,7 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
 
     sys.path.append('./Services')
     import numpy as np
-    pathin=config_VA[dataversion]
+    pathin=Host_path[hostname]+config_VA[dataversion]
     #pathSci=pathin+"New_Results/"+obskey[:-1]+"/"+obskey+"/"+Level+'/'
     pathSci=pathin+"/"+obskey[:-1]+"/"+obskey+"/"+Level+'/'
     filesSciTemp=os.listdir(pathSci)
@@ -181,7 +184,7 @@ def read_fits_map_L3_V1(obskey="20231026UTa",imagetype="Map",Level="L3",
     import get_spice_ephem as sp_ephem
     import numpy as np
 
-    pathin=config_VA[dataversion]
+    pathin=Host_path[hostname]+config_VA[dataversion]
     sourcedata=obskey#+"_"+imagetype
     sourcefiles=getlist.get_obs_list(planet=target)
     pathRGB='c:/Astronomy/Projects/Planets/'+target+'/Imaging Data/'+obskey[0:10]+'/'
@@ -409,9 +412,11 @@ def read_fits_map_L4(LonSys,collection="20220904-20220905",
     ###########################################################################
     # Identify files to read
     ###########################################################################
-    pathinp="C:/Astronomy/Projects/SAS 2021 Ammonia/Data/L4 FITS (cont maps)/"
-    contents = os.listdir(pathinp)
-    files_in_directory = [item for item in contents if os.path.isfile(os.path.join(pathinp, item))]
+    #pathinp="C:/Astronomy/Projects/SAS 2021 Ammonia/Data/L4 FITS (cont maps)/"
+    pathin=Host_path[hostname]+config_VA[4]
+
+    contents = os.listdir(pathin)
+    files_in_directory = [item for item in contents if os.path.isfile(os.path.join(pathin, item))]
     
     fits_in_directory = [item for item in files_in_directory \
                          if '.fits' in item ]  
@@ -429,7 +434,7 @@ def read_fits_map_L4(LonSys,collection="20220904-20220905",
     print("############### fNH3file=",fNH3file)
     if len(fNH3file)>0:
         print("############### fNH3file=",fNH3file[0])
-        fNH3hdulist=fits.open(pathinp+fNH3file[0])
+        fNH3hdulist=fits.open(pathin+fNH3file[0])
         fNH3hdulist.info()
         fNH3hdr=fNH3hdulist[0].header
         roll=int(fNH3hdr[ctype1_key[fNH3hdr['CTYPE1']]]-fNH3hdr[cm_key])
@@ -445,7 +450,7 @@ def read_fits_map_L4(LonSys,collection="20220904-20220905",
     PCldfile = [item for item in LonSys_in_directory \
                          if 'L4PCld' in item]      
     if len(PCldfile)>0:
-        PCldhdulist=fits.open(pathinp+PCldfile[0])
+        PCldhdulist=fits.open(pathin+PCldfile[0])
         PCldhdulist.info()
         PCldhdr=PCldhdulist[0].header
         roll=int(PCldhdr[ctype1_key[PCldhdr['CTYPE1']]]-PCldhdr[cm_key])
@@ -461,7 +466,7 @@ def read_fits_map_L4(LonSys,collection="20220904-20220905",
     RGBfile = [item for item in LonSys_in_directory \
                          if 'L4RGB' in item]      
     if len(RGBfile)>0:
-        RGBhdulist=fits.open(pathinp+RGBfile[0])
+        RGBhdulist=fits.open(pathin+RGBfile[0])
         RGBhdulist.info()
         RGBhdr=RGBhdulist[0].header
         roll=int(RGBhdr[ctype1_key[RGBhdr['CTYPE1']]]-RGBhdr[cm_key])
@@ -481,7 +486,7 @@ def read_fits_map_L4(LonSys,collection="20220904-20220905",
                              if 'L4IRTF' in item]      
         if len(IRTFfile)>0:
             print("############### IRTF Map=",IRTFfile)
-            IRTFhdulist=fits.open(pathinp+IRTFfile[0])
+            IRTFhdulist=fits.open(pathin+IRTFfile[0])
             IRTFhdulist.info()
             IRTFhdr=IRTFhdulist[0].header
             roll=int(IRTFhdr['CM3']-IRTFhdr[cm_key])
@@ -511,7 +516,7 @@ def read_fits_map_L4(LonSys,collection="20220904-20220905",
         JALPOfile = [item for item in collection889CH4_in_directory \
                              if 'L4889CH4' in item]      
         if len(JALPOfile)>0:
-            JALPOhdulist=fits.open(pathinp+JALPOfile[0])
+            JALPOhdulist=fits.open(pathin+JALPOfile[0])
             JALPOhdulist.info()
             JALPOhdr=JALPOhdulist[0].header
             print("########### ",JALPOhdr['DATE-OBS'])
