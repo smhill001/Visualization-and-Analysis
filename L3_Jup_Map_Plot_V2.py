@@ -1,9 +1,11 @@
-#from config_VA import config_VA
-
+import socket
 import numpy as np
 from scipy.signal import convolve2d
 import plot_patch as pp
 import matplotlib.pyplot as pl
+hostname = socket.gethostname()
+from config_VA import Host_path
+
 
 def rolling_corr2d(A, B, wdeg,dataversion=2):
     
@@ -176,7 +178,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     #                                            Level="L3",
     #                                            target=target,FiveMicron=FiveMicron)
                     
-    pathmapplots='C:/Astronomy/Projects/SAS 2021 Ammonia/Data/L3 Plots/'+subproj+'/'
+    pathmapplots=Host_path[hostname]+'/L3 Plots/'+subproj+'/'
     if not os.path.exists(pathmapplots):
         os.makedirs(pathmapplots)
     ###########################################################################
