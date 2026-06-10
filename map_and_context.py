@@ -231,6 +231,7 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
     print("############# pathout=",pathout)
     print("############# fnout=",fnout)
     fig1.savefig(pathout+fnout,dpi=300)
-    pl.close(fig1)
+    if noplot:
+        pl.close(fig1)
     
     return(data_patch,mapdata,tx,fnout,RGB4Display)

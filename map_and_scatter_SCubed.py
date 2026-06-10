@@ -1,4 +1,4 @@
-def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
+def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
                     LatLims,LonLimsWest,LonRng,PlotCM,fnout,
                     amfdata,coef,txinx,txiny,xlow,xhigh,ylow,yhigh,figxy,
                     ctbls,pathout,Ltitle,Rtitle,Level='L3',
@@ -105,23 +105,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs fNH3)
     ###########################################################################
-    #fig3,axs3=pl.subplots(1,2,figsize=(figxy[0],figxy[1]), dpi=150, facecolor="white")
-    #fig3.suptitle(suptitle,x=0.5,ha='center',color='k')
-    #fig3.suptitle(dateobs.replace("_"," ")+", CM"+LonSys+"="
-    #              +str(int(PlotCM)),x=0.5,ha='center',color='k')
-
-    #fig3 = pl.figure(layout="constrained",figsize=(8,6))
-    #fig3 = pl.figure(figsize=(10,6),constrained_layout=False)
-    #subfigs = fig3.subfigures(1, 2, wspace=0.05)
-    #axs3 = subfigs[0].subplots(3, 1,sharex=True)
-    
-    #gs = fig3.add_gridspec(1, 2, left=0.02, right=0.98, wspace=0.02)
-
-    #subfig_left  = fig3.add_subfigure(gs[0],left=0.02)
-    #subfig_right = fig3.add_subfigure(gs[1])
-
-    #axs3 = subfig_left.subplots(3, 1, sharex=True)
-    
+  
     fig3 = pl.figure(figsize=(8,4.5),dpi=150,facecolor="white")
 
 
@@ -144,17 +128,8 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     
     # Right column (whatever goes there)
     axs1 = fig3.add_subplot(gs[:, 1])
-    #subfigs[0].set_facecolor('lightblue')
-    #subfigs[0].suptitle('subfigs[0]\nLeft side')
-    #subfigs[0].supxlabel('xlabel for subfigs[0]')
-    
-    #axs1 = subfigs[1].subplots(1)
-    #axs1 = subfig_right.subplots(1)
-
     axs1.set_title("Ammonia Mole Fraction versus Cloud Pressure",fontsize=12)
     axs1.set_box_aspect(1)
-    #subfigs[1].suptitle('subfigs[1]')
-    #subfigs[1].supylabel('ylabel for subfigs[1]')
 
     axs3[0].grid(linewidth=0.2)
     axs3[0].ylim=[-45.,45.]
@@ -192,14 +167,6 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     axs3[2].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
     axs3[2].set_title(maptitles[2],fontsize=10,y=0.95)
 
-    #axs3[0].set_adjustable('box') 
-    #axs3[1].set_adjustable('box') 
-
-    #Pcloud_patch,vn,vx,tx=PP.plot_patch(PClouddata,LatLims,NH3LonLimsEast,
-    #                                 PCldPlotCM,LonRng,"jet",
-    #                                 axs2[0],'%3.2f',cont=False,
-    #                                 cbar_reverse=True,vn=400,vx=900,n=6)
-    #Testy_patch=MP.make_patch(mapydata,LatLims,LonLimsEast,PlotCM,LonRng)
 
     cbttl="Mean="+str(np.mean(patchy))[:4]+" $\pm$ "+str(np.std(patchy))[:3]
     statistics |={'mean_y':np.mean(patchy),'mean_x':np.mean(patchx),
@@ -224,12 +191,6 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
                                      axs3[2],'%3.2f',
                                      cbar_reverse=False,vn=xlow,vx=xhigh,n=6,
                                      cbar_title=cbttl)
-
-    #for ax in axs3:
-    #    ax.set_anchor('W')    
-    #cbary.set_anchor('W')
-    #cbarRGB.set_anchor('W')
-    #cbarx.set_anchor('W')
 
     if cont:
         patchxsmth = gaussian_filter(patchx, sigma=smoothcont)
@@ -273,13 +234,13 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     
     if swap_xy and ROI:
         print("Calling ROI",maptitles[2],maptitles[0])
-        roilabel,mean1,stdv1,mean2,stdv2=prs.plot_roi_scatter(patchx,patchy,PlotCM,
+        Roiout=prs.plot_roi_scatter(obskey,dateobs,patchx,patchy,PlotCM,
                  LatLims,LonLimsEast,axs1,xlow,xhigh,ylow,yhigh,FiveMicron,
                  axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
                  dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
     if not swap_xy and ROI:    
         print("Calling ROI",maptitles[2],maptitles[0])
-        roilabel,mean1,stdv1,mean2,stdv2=prs.plot_roi_scatter(patchy,patchx,PlotCM,
+        ROIout=prs.plot_roi_scatter(obskey,dateobs,patchy,patchx,PlotCM,
                  LatLims,LonLimsEast,axs1,ylow,yhigh,xlow,xhigh,FiveMicron,
                  axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
                  dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
@@ -305,10 +266,6 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
         BZkeys=BZ.keys()
         BZind=copy.deepcopy(BZ)   
         BZkeys=BZ.keys()
-        #patch1=patch1*1000.
-    
-        #figcor,axscor=pl.subplots(1,1,figsize=(6.0,4.), dpi=150, facecolor="white",
-        #                    sharey=True,sharex=True)          
     
         clrind=0
         for key in BZ.keys():
@@ -334,17 +291,6 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
                 
                 clrind=clrind+1
 
-    #box = axs3[1].get_position()
-    #axs3[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 0.5, box.height * 1.015])    
-    #fig3.subplots_adjust(left=0.02, right=0.95, top=0.92, bottom=0.10)
-    #subfig_left.subplots_adjust(left=0.01, right=0.95, top=0.92, bottom=0.10)
-    #for ax in axs3:
-    #    ax.tick_params(axis='y', pad=1)
-    #for ax in axs3:
-    #    print(ax.get_position())
     fig3.savefig(pathout+fnout[:-4]+' scatter.png',dpi=300)
     
-    if not ROI:
-        meanamf=False
-
-    return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,axs3)#,meanamf)
+    return ROIout,axs3
