@@ -57,7 +57,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                         coef=[0.,0.],subproj='',figxy=[8.0,4.0],FiveMicron=False,
                         plotoptions=["contours","surface"],
                         ROI=False,segment=False,
-                        LimbCorrection=False,dataversion=2,smoothcont=0):
+                        LimbCorrection=False,dataversion=2,smoothcont=0,
+                        compare=False):
     """
     Created on Sun Nov  6 16:47:21 2022
     
@@ -149,10 +150,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                         target=target,
                                                         LimbCorrection=LimbCorrection,
                                                         dataversion=dataversion)
-                #print('CM'+LonSys)
-                #print()
-                #print(AOIhdr)
-                #print(fNH3hdr['CM'+LonSys])
                 AOICM=AOIhdr['CM'+LonSys]
                 CICM=CIhdr['CM'+LonSys]
             fNH3CM=fNH3hdr['CM'+LonSys]
@@ -235,6 +232,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                        amfdata,coef[0],fNH3low,fNH3high,
                                                        showbands,FiveMicron,figxy,
                                                        ctbls[0],pathmapplots,Level='L3',
+                                                       param_name='fNH3',
                                                        cont=("contours" in plotoptions),
                                                        suptitle="Ammonia Mole Fraction",
                                                        cbar_title="Ammonia Mole Fraction (ppm)",
@@ -251,7 +249,9 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                         LonRng,PCldPlotCM,
                                                         amfdata,coef[1],PCldlow,PCldhigh,
                                                         showbands,FiveMicron,figxy,
-                                                        ctbls[1],pathmapplots,Level='L3',cont=("contours" in plotoptions),
+                                                        ctbls[1],pathmapplots,Level='L3',
+                                                        param_name='PCld',
+                                                        cont=("contours" in plotoptions),
                                                         suptitle="Cloud Top Pressure",
                                                         cbar_rev=True,
                                                         cbar_title="Cloud Top Pressure (mb)",
@@ -269,7 +269,9 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                             LonRng,fNH3PlotCM,
                                                             amfdata,coef[1],AOIlow,AOIhigh,
                                                             showbands,FiveMicron,figxy,
-                                                            'Greys_r',pathmapplots,Level='L3',cont=("contours" in plotoptions),
+                                                            'Greys_r',pathmapplots,Level='L3',
+                                                            param_name='AOI',
+                                                            cont=("contours" in plotoptions),
                                                             suptitle="Altitude Opacity Index",
                                                             cbar_rev=False,
                                                             cbar_title="AOI",
@@ -282,7 +284,9 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                             LonRng,fNH3PlotCM,
                                                             amfdata,coef[1],CIlow,CIhigh,
                                                             showbands,FiveMicron,figxy,
-                                                            'Spectral',pathmapplots,Level='L3',cont=("contours" in plotoptions),
+                                                            'Spectral',pathmapplots,Level='L3',
+                                                            param_name='CI',
+                                                            cont=("contours" in plotoptions),
                                                             suptitle="Color Index",
                                                             cbar_rev=True,
                                                             cbar_title="CI",
@@ -318,11 +322,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     ###########################################################################
     ## Compute Band or ROI Scatter Plot (PCloud vs fNH3)
     ###########################################################################
-    #mas.map_and_scatter(fNH3_patch_mb,PCld_patch,PClddata,fNH3hdr['DATE-OBS'],LonSys,
-
-
     if "scatter" in plotoptions:
-        dateobs,roilabel,mean1,stdv1,mean2,stdv2,axsmaps= \
+        dateobs,roilabel,mean1,stdv1,mean2,stdv2,figscatter,axsscatter,axsmaps,fnout= \
             masc.map_and_scatter_SCubed(fNH3_patch_mb,PCld_patch,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
             CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
             amfdata,coef[0],tx_fNH3,tx_PCld,fNH3low,fNH3high,PCldlow,PCldhigh,
@@ -337,21 +338,35 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                 'mean2':mean2,'stdv2':stdv2}}#,'meanamf':meanamf}}
         print("############### ROIout= ",ROIout)
         print()
-        #ROIout_subdict=ROIout[obskey]
-        #keys=ROIout_subdict.keys()
-        #rows=zip(*ROIout_subdict.values())
-        #with open(pathmapplots+obskey+' fNH3vPCld ROI.csv','w',newline='') as f:
-        #    writer=csv.writer(f)
-        #    writer.writerow(keys)
-        #    writer.writerow(rows)
         ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' fNH3vPCld ROI.csv')
         
+        if compare:
+            xerr=[[50],[50]]
+            yerr=[[300],[4000]]
+            axsscatter.set_xlim(10,1000)
+            axsscatter.set_ylim(10000,100)
+            axsscatter.set_xscale('log') 
+            axsscatter.set_yscale('log') 
+            axsscatter.errorbar(200,1000,xerr=xerr,yerr=yerr,fmt='o',capsize=1.0)
+            
+            sys.path.append("/mnt/data/git_repos/Jupiter_NH3_Analysis_P3/Profiles/code/")
+            import Profile_Vertical_Fletcher
+            pressavg,fNH3avg=Profile_Vertical_Fletcher.Profile_Vertical_Fletcher()
+            axsscatter.plot(np.array(fNH3avg),np.array(pressavg)*1000.)
+            print("COMPARE COMPARE COMPARE COMPARE COMPARE ")
+            print(np.array(fNH3avg),np.array(pressavg)*1000.)
+            #return
         if segment:
-            #NH3thresh=135 #standard value
-            NH3thresh=145 #alt value
-            Cloudthresh=1800
-            #NEDFthresh=1950
-            NEDFthresh=2030
+            if dataversion=='H':
+                NH3thresh=170
+                Cloudthresh=1800
+                NEDFthresh=2500
+                collection='HST'
+            else:
+                NH3thresh=135
+                Cloudthresh=1800
+                NEDFthresh=2030
+                
             fNH3_mask, labeled_fNH3, props_fNH3= \
                 FB.process_blob(fNH3_patch_mb, PCld_patch, CoLatLims, NH3LonLims, 
                                 timearray='None',
@@ -369,7 +384,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                 
             import make_lat_lon_str as MLLS
             latstr,lonstr=MLLS.make_lat_lon_str(CoLatLims,NH3LonLims)
-            collection='HST'
             FB.export_regions_to_csv(props_fNH3, NH3thresh, 
                                      pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NH3thresh)+" fNH3.csv")
             FB.export_regions_to_csv(props_Plum, Cloudthresh, 
@@ -377,24 +391,25 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             FB.export_regions_to_csv(props_NEDF, NEDFthresh, 
                                      pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NEDFthresh)+" NEDF.csv")
             print("$$$$$$$$$$$$$$$$$$$$$$$$$",CoLatLims,NH3LonLims)
-        
-            FB.plot_regions_on_axis(axsmaps[1], labeled_fNH3, props_fNH3,
+
+            FB.plot_regions_on_axis(axsmaps[1], labeled_fNH3, props_fNH3,dataversion=dataversion,
                                     lon_lims=NH3LonLims,LatLims=CoLatLims,
                                     plot_contours=False, plot_masks=True,
                                     plot_labels=False,contour_color='C0')
-            FB.plot_regions_on_axis(axsmaps[1], labeled_Plum, props_Plum,
+            FB.plot_regions_on_axis(axsmaps[1], labeled_Plum, props_Plum,dataversion=dataversion,
                                     lon_lims=NH3LonLims,LatLims=CoLatLims,
                                     plot_contours=False, plot_masks=True,
                                     plot_labels=False, contour_color='white')
-            FB.plot_regions_on_axis(axsmaps[1], labeled_NEDF, props_NEDF,
+            FB.plot_regions_on_axis(axsmaps[1], labeled_NEDF, props_NEDF,dataversion=dataversion,
                                     lon_lims=NH3LonLims,LatLims=CoLatLims,
                                     plot_contours=False, plot_masks=True,
                                     plot_labels=False, contour_color='black')
+        figscatter.savefig(pathmapplots+fnout[:-4]+' scatter.png',dpi=300)
 
 
         if dataversion=='H':
             ctbls=['Spectral','Greys_r']
-            dateobs,roilabel,mean1,stdv1,mean2,stdv2,axsmaps= \
+            dateobs,roilabel,mean1,stdv1,mean2,stdv2,figscatter,axsscatter,axsmaps,fnout= \
                 masc.map_and_scatter_SCubed(CI_patch,AOI_patch,AOIdata,RGB4Display,AOIhdr['DATE-OBS'],LonSys,
                 CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
                 amfdata,coef[0],tx_AOI,tx_CI,CIlow,CIhigh,AOIlow,AOIhigh,
@@ -409,7 +424,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' AOIvCI ROI.csv')
             print("############### ROIout= ",ROIout)
         
-
+    figscatter.savefig(pathmapplots+fnout[:-4]+' scatter.png',dpi=300)
         
     if 'resid' in plotoptions:
         LonLimsEast=[360-NH3LonLims[1],360-NH3LonLims[0]]
@@ -429,7 +444,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         resid_ABlow=-0.8
         resid_ABhigh=0.8
 
-        dateobs,roilabel,mean1,stdv1,mean2,stdv2,axsmaps= \
+        dateobs,roilabel,mean1,stdv1,mean2,stdv2,figscatter,axsscatter,axsmaps,fnout= \
             masc.map_and_scatter_SCubed(cc2d,resid_AB,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
             CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
             amfdata,coef[0],tx_fNH3,tx_PCld,cc2dlow,cc2dhigh,resid_ABlow,resid_ABhigh,
@@ -441,6 +456,8 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         ROIout={obskey:{'dateobs':dateobs,'roilabel':roilabel,'mean1':mean1,'stdv1':stdv1,
                 'mean2':mean2,'stdv2':stdv2}}#,'meanamf':meanamf}}
         ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' residvcc2d ROI.csv')
+
+        figscatter.savefig(pathmapplots+fnout[:-4]+' scatter.png',dpi=300)
 
 
     ###########################################################################
@@ -466,7 +483,10 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                         cbar_rev=False,swap_xy=False,
                         axis_inv=True,cbar_title="Log10(5um radiance)")
    
-    #return(fig1,axs1,fig2,axs2,fig3,axs3)
+    #print("#############################")
+    #print("ROIout[obskey].keys()=",ROIout[obskey].keys())
+    #print("ROIout[obskey]['cov_matrix'][0]=",ROIout[obskey]['cov_matrix'][0])
+    #print("ROIout[obskey]['nsamples']=",ROIout[obskey]['nsamples'])
     if "scatter" in plotoptions:
         return(ROIout)
     #return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf)

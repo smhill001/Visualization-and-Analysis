@@ -105,25 +105,8 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs fNH3)
     ###########################################################################
-    #fig3,axs3=pl.subplots(1,2,figsize=(figxy[0],figxy[1]), dpi=150, facecolor="white")
-    #fig3.suptitle(suptitle,x=0.5,ha='center',color='k')
-    #fig3.suptitle(dateobs.replace("_"," ")+", CM"+LonSys+"="
-    #              +str(int(PlotCM)),x=0.5,ha='center',color='k')
-
-    #fig3 = pl.figure(layout="constrained",figsize=(8,6))
-    #fig3 = pl.figure(figsize=(10,6),constrained_layout=False)
-    #subfigs = fig3.subfigures(1, 2, wspace=0.05)
-    #axs3 = subfigs[0].subplots(3, 1,sharex=True)
-    
-    #gs = fig3.add_gridspec(1, 2, left=0.02, right=0.98, wspace=0.02)
-
-    #subfig_left  = fig3.add_subfigure(gs[0],left=0.02)
-    #subfig_right = fig3.add_subfigure(gs[1])
-
-    #axs3 = subfig_left.subplots(3, 1, sharex=True)
     
     fig3 = pl.figure(figsize=(8,4.5),dpi=150,facecolor="white")
-
 
     gs = fig3.add_gridspec(
         3, 2,
@@ -135,7 +118,7 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
         hspace=0.4
     )
 
-    # Left column (your 3 stacked plots)
+    # Left column ( 3 stacked plots)
     axs3 = [fig3.add_subplot(gs[i, 0]) for i in range(3)]
     axs3[0].sharex(axs3[2])
     axs3[2].sharex(axs3[2])
@@ -144,17 +127,9 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     
     # Right column (whatever goes there)
     axs1 = fig3.add_subplot(gs[:, 1])
-    #subfigs[0].set_facecolor('lightblue')
-    #subfigs[0].suptitle('subfigs[0]\nLeft side')
-    #subfigs[0].supxlabel('xlabel for subfigs[0]')
-    
-    #axs1 = subfigs[1].subplots(1)
-    #axs1 = subfig_right.subplots(1)
 
     axs1.set_title("Ammonia Mole Fraction versus Cloud Pressure",fontsize=12)
     axs1.set_box_aspect(1)
-    #subfigs[1].suptitle('subfigs[1]')
-    #subfigs[1].supylabel('ylabel for subfigs[1]')
 
     axs3[0].grid(linewidth=0.2)
     axs3[0].ylim=[-45.,45.]
@@ -342,9 +317,9 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     #    ax.tick_params(axis='y', pad=1)
     #for ax in axs3:
     #    print(ax.get_position())
-    fig3.savefig(pathout+fnout[:-4]+' scatter.png',dpi=300)
+    #fig3.savefig(pathout+fnout[:-4]+' scatter.png',dpi=300)
     
     if not ROI:
         meanamf=False
 
-    return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,axs3)#,meanamf)
+    return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,fig3,axs1,axs3,fnout)#,meanamf)
