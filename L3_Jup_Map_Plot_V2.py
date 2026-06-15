@@ -483,7 +483,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     print("ROIout[obskey].keys()=",ROIout[obskey].keys())
     print("ROIout[obskey]['cov_matrix'][0]=",ROIout[obskey]['cov_matrix'][0])
     print("ROIout[obskey]['nsamples']=",ROIout[obskey]['nsamples'])
-    #return(fig1,axs1,fig2,axs2,fig3,axs3)
     if "scatter" in plotoptions:
         return(ROIout)
     #return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf)

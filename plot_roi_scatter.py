@@ -240,19 +240,19 @@ def plot_roi_scatter(obskey,dateobs,patch1,patch2,Real_CM2,LatLims,LonLims,axsco
     parent_results=mahalanobis_to_parent(ROIout, obskey)
     
     print()
-    print("##############")
+    print("############## Mahalanobis to parent")
     for roi, vals in parent_results.items():
         print(
             roi,
             vals['D2'],
             vals['D']
         )
-    print("##############")
+    print("############## Mahalanobis pairwise, pooled")
     print()
    
     labels,D=pairwise_mahalanobis(ROIout, obskey)
     print(labels,D)
-    print("##############")
+    print("############## Mahalanobis pairwise, pooled 4")
     print()
     
     labels4,D4=roi_pairwise_mahalanobis(ROIout, obskey)

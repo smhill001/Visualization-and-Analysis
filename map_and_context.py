@@ -195,7 +195,7 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
                               90.-np.array([ROI[R][0],ROI[R][0],ROI[R][1],
                               ROI[R][1],ROI[R][0]]))
 
-    box = axs1[1].get_position()
+    #box = axs1[1].get_position()
     
     belt={"SSTB":[-39.6,-36.2],
           "STB":[-32.4,-27.1],

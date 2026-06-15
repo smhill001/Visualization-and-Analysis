@@ -108,7 +108,6 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
   
     fig3 = pl.figure(figsize=(8,4.5),dpi=150,facecolor="white")
 
-
     gs = fig3.add_gridspec(
         3, 2,
         left=-0.05,
@@ -119,7 +118,7 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
         hspace=0.4
     )
 
-    # Left column (your 3 stacked plots)
+    # Left column ( 3 stacked plots)
     axs3 = [fig3.add_subplot(gs[i, 0]) for i in range(3)]
     axs3[0].sharex(axs3[2])
     axs3[2].sharex(axs3[2])
@@ -244,7 +243,7 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
                  LatLims,LonLimsEast,axs1,ylow,yhigh,xlow,xhigh,FiveMicron,
                  axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
                  dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
-        
+       
         
     axs3[1].tick_params(axis='both', which='major', labelsize=9)
 
