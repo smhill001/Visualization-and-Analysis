@@ -17,4 +17,3 @@ config_VA={1:"/L3 FITS/",
 
 #config=Host_path[hostname]+config_VA[1]
 #print(config_VA)
-

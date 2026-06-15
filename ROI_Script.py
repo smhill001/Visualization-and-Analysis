@@ -12,16 +12,24 @@ def flatten_json_agg_to_csv(data, csv_output_path):
         writer = csv.writer(csvfile)
 
         # Write header
-        header = ['obs_id', 'dateobs', 'roilabel', 'mean1', 'stdv1', 'mean2', 'stdv2']#, 'meanamf']
+        header = ['obs_id', 'dateobs', 'roilabel', 'nsamples', 'mean1', 'stdv1', 'mean2', 'stdv2',
+                  'slope', 'intercept', 'r_value', 'p_value', 'std_err','cov_matrix']#, 'meanamf']
         writer.writerow(header)
 
         for obs_id, entry in data.items():
             dateobs = entry['dateobs']
             roilabels = entry['roilabel']
+            nsamples = entry['nsamples']
             mean1 = entry['mean1']
             stdv1 = entry['stdv1']
             mean2 = entry['mean2']
             stdv2 = entry['stdv2']
+            slope = entry['slope']
+            intercept = entry['intercept']
+            r_value = entry['r_value']
+            p_value = entry['p_value']
+            std_err = entry['std_err']
+            cov_matrix = entry['cov_matrix']
             #meanamf = entry['meanamf']
 
             for i in range(len(roilabels)):
@@ -29,10 +37,17 @@ def flatten_json_agg_to_csv(data, csv_output_path):
                     obs_id,
                     dateobs,
                     roilabels[i],
+                    nsamples[i],
                     mean1[i],
                     stdv1[i],
                     mean2[i],
                     stdv2[i],
+                    slope[i],
+                    intercept[i],
+                    r_value[i],
+                    p_value[i],
+                    std_err[i],
+                    cov_matrix[i],
                     #meanamf[i]
                 ])
                 

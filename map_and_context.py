@@ -26,7 +26,7 @@ def make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
         fnout=filename[:-5]+fnskeleton
     if dataversion=='H':
         fnout=filename[:-5]+fnskeleton
-        fnout=fnout.replace('.png',' '+param_name+'.png')          
+        fnout=fnout.replace('.png',' '+param_name+'.png')
     return fnout
 
 
@@ -177,7 +177,7 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
                                      #cbar_title=cbar_title,cbar_reverse=cbar_rev)
                                      cbar_title=cbttl,cbar_reverse=cbar_rev)
     RGBcbar.remove()
-    
+
     if cont:
         #temp=PC.plot_contours_on_patch(axs1[1],data_patch,LatLims,LonLims,
         #                       tx,frmt='%3.0f',clr='k')
@@ -230,7 +230,7 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
     axs1[1].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
     axs1[1].grid(linewidth=0.2)
 
-    fig1.subplots_adjust(left=0.10, bottom=0.10, right=0.98, top=0.88)#,
+    fig1.subplots_adjust(left=0.10, bottom=0.03, right=0.98, top=0.95)#,
                 #wspace=0.25, hspace=0.05)     
     #axs1[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 1.015, box.height * 1.015])
 

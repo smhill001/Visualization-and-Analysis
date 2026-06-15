@@ -151,7 +151,7 @@ def statistics_helper(ROIout,obskey,R,patch1,patch2,clr,axscor,alpha=1.0):
     axscor.add_patch(ellipse)
 
     return ROIout      
-
+    
 def plot_roi_scatter(obskey,dateobs,patch1,patch2,Real_CM2,LatLims,LonLims,axscor,PCldlow,PCldhigh,
                  fNH3low,fNH3high,FiveMicron,axis_inv=False,ROI=False,amfpatch=False,
                  dataversion=2,xaxistitle='',yaxistitle=''):

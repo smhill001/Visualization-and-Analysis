@@ -105,7 +105,7 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs fNH3)
     ###########################################################################
-    
+  
     fig3 = pl.figure(figsize=(8,4.5),dpi=150,facecolor="white")
 
     gs = fig3.add_gridspec(
@@ -127,7 +127,6 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
     
     # Right column (whatever goes there)
     axs1 = fig3.add_subplot(gs[:, 1])
-
     axs1.set_title("Ammonia Mole Fraction versus Cloud Pressure",fontsize=12)
     axs1.set_box_aspect(1)
 
@@ -167,14 +166,6 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
     axs3[2].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
     axs3[2].set_title(maptitles[2],fontsize=10,y=0.95)
 
-    #axs3[0].set_adjustable('box') 
-    #axs3[1].set_adjustable('box') 
-
-    #Pcloud_patch,vn,vx,tx=PP.plot_patch(PClouddata,LatLims,NH3LonLimsEast,
-    #                                 PCldPlotCM,LonRng,"jet",
-    #                                 axs2[0],'%3.2f',cont=False,
-    #                                 cbar_reverse=True,vn=400,vx=900,n=6)
-    #Testy_patch=MP.make_patch(mapydata,LatLims,LonLimsEast,PlotCM,LonRng)
 
     cbttl="Mean="+str(np.mean(patchy))[:4]+" $\pm$ "+str(np.std(patchy))[:3]
     statistics |={'mean_y':np.mean(patchy),'mean_x':np.mean(patchx),
@@ -199,12 +190,6 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
                                      axs3[2],'%3.2f',
                                      cbar_reverse=False,vn=xlow,vx=xhigh,n=6,
                                      cbar_title=cbttl)
-
-    #for ax in axs3:
-    #    ax.set_anchor('W')    
-    #cbary.set_anchor('W')
-    #cbarRGB.set_anchor('W')
-    #cbarx.set_anchor('W')
 
     if cont:
         patchxsmth = gaussian_filter(patchx, sigma=smoothcont)
@@ -280,10 +265,6 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
         BZkeys=BZ.keys()
         BZind=copy.deepcopy(BZ)   
         BZkeys=BZ.keys()
-        #patch1=patch1*1000.
-    
-        #figcor,axscor=pl.subplots(1,1,figsize=(6.0,4.), dpi=150, facecolor="white",
-        #                    sharey=True,sharex=True)          
     
         clrind=0
         for key in BZ.keys():

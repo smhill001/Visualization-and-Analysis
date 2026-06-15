@@ -102,7 +102,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     import make_patch as MP
     import ROI_Script as ROIS
     import map_and_context as mac
-    import map_and_scatter as mas
+    #import map_and_scatter as mas
     import map_and_scatter_SCubed as masc
     import map_cloudsurface as msurf
     import read_fits_V2 as RF2
@@ -337,6 +337,9 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         print()
         ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' fNH3vPCld ROI.csv')
         
+        #######################################################################
+        # COMPARISON DATA OVERPLOT
+        #######################################################################
         if compare:
             xerr=[[50],[50]]
             yerr=[[300],[4000]]
@@ -344,12 +347,15 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             axsscatter.set_ylim(10000,100)
             axsscatter.set_xscale('log') 
             axsscatter.set_yscale('log') 
-            axsscatter.errorbar(200,1000,xerr=xerr,yerr=yerr,fmt='o',capsize=1.0)
+            #Bjoraker++ 2018 (deep values only, not saturation level above 700mb)
+            axsscatter.plot([200,200],[700,5000],label="Bjoraker++ 2018")
+            axsscatter.fill_betweenx([700,5000],[150,150],[250,250],alpha=0.1)
             
-            sys.path.append("/mnt/data/git_repos/Jupiter_NH3_Analysis_P3/Profiles/code/")
+            sys.path.append("C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Profiles/code/")
+            #sys.path.append("/mnt/data/git_repos/Jupiter_NH3_Analysis_P3/Profiles/code/")
             import Profile_Vertical_Fletcher
-            pressavg,fNH3avg=Profile_Vertical_Fletcher.Profile_Vertical_Fletcher()
-            axsscatter.plot(np.array(fNH3avg),np.array(pressavg)*1000.)
+            pressavg,fNH3avg=Profile_Vertical_Fletcher.Profile_Vertical_Fletcher(plot=False)
+            axsscatter.plot(np.array(fNH3avg),np.array(pressavg)*1000.,label='Fletcher++ 2020')
             print("COMPARE COMPARE COMPARE COMPARE COMPARE ")
             print(np.array(fNH3avg),np.array(pressavg)*1000.)
             #return
@@ -401,10 +407,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                     lon_lims=NH3LonLims,LatLims=CoLatLims,
                                     plot_contours=False, plot_masks=True,
                                     plot_labels=False, contour_color='black')
-            #axsmaps[1].ylim=[-45.,45.]
-            #LonLimsEast=[360-NH3LonLims[1],360-NH3LonLims[0]]
-            #axsmaps[1].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
-
         figscatter.savefig(pathmapplots+fnout[:-4]+' scatter.png',dpi=300)
 
 
@@ -421,9 +423,9 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                 axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
             ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' AOIvCI ROI.csv')
             print("############### ROIout= ",ROIout)
-        
+                
     figscatter.savefig(pathmapplots+fnout[:-4]+' scatter.png',dpi=300)
-        
+
     if 'resid' in plotoptions:
         LonLimsEast=[360-NH3LonLims[1],360-NH3LonLims[0]]
         norm_A,norm_B,resid_AB=residual_2d(fNH3_patch_mb,PCld_patch)
@@ -453,7 +455,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' residvcc2d ROI.csv')
 
         figscatter.savefig(pathmapplots+fnout[:-4]+' scatter.png',dpi=300)
-
 
     ###########################################################################
     ## Compute Scatter Plot (PCloud vs 5um radiance)
