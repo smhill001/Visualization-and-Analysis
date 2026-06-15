@@ -1,7 +1,7 @@
 def plot_patch(patch, LatLims, LonLims, CM2, LonRng, colorscale, axis,
                cbarplot=True, cbar_title="Test", cbar_reverse=False,
                vn=0.10, vx=0.20, n=6, alpha=1.0, cbarvis=True,
-               anchor='W'):
+               anchor='W',cbar_title_x=-1.0):
     """
     Purpose:
         To plot a map patch with appropriate latitude and longitude scales,
@@ -27,6 +27,8 @@ def plot_patch(patch, LatLims, LonLims, CM2, LonRng, colorscale, axis,
         Whether to draw a colorbar (default True).
     cbar_title : str, optional
         Colorbar label (default "Test").
+    cbar_title_x : float, optional
+        Set x-offset for color bar title
     cbar_reverse : bool, optional
         Reverse colorbar axis if True (default False).
     vn : float, optional
@@ -87,7 +89,7 @@ def plot_patch(patch, LatLims, LonLims, CM2, LonRng, colorscale, axis,
         cbar.ax.set_yticklabels(np.around(tx, 3))
         cbar.ax.tick_params(labelsize=7, color="k")
         cbar.ax.set_ylabel(cbar_title, size=7)
-        cbar.ax.yaxis.set_label_coords(-1.0, 0.5)
+        cbar.ax.yaxis.set_label_coords(cbar_title_x, 0.5)
         if cbar_reverse:
             cbar.ax.invert_yaxis()
         cbar.ax.set_visible(cbarvis)

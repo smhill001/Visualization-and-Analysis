@@ -234,7 +234,7 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
     
     if swap_xy and ROI:
         print("Calling ROI",maptitles[2],maptitles[0])
-        Roiout=prs.plot_roi_scatter(obskey,dateobs,patchx,patchy,PlotCM,
+        ROIout=prs.plot_roi_scatter(obskey,dateobs,patchx,patchy,PlotCM,
                  LatLims,LonLimsEast,axs1,xlow,xhigh,ylow,yhigh,FiveMicron,
                  axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
                  dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
@@ -291,6 +291,6 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
                 
                 clrind=clrind+1
 
-    fig3.savefig(pathout+fnout[:-4]+' scatter.png',dpi=300)
+    #fig3.savefig(pathout+fnout[:-4]+' scatter.png',dpi=300)
     
-    return ROIout,axs3
+    return ROIout,fig3,axs1,axs3,fnout

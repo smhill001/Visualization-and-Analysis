@@ -52,7 +52,8 @@ def find_blob(image_to_segment, intensity_image,threshold_abs=None, mode='max'):
     return blob_mask,labeled_image,props_data,props_intensity
 
 
-def process_blob(image_to_segment, intensity_image, LatLims, lon_lims, timearray=None, threshold_abs=None, mode='max'):
+def process_blob(image_to_segment, intensity_image, LatLims, lon_lims, 
+                 timearray=None, threshold_abs=None, mode='max',dataversion=2):
     """
     Segments blobs, converts coordinates to lat/lon, merges regionprops from both images,
     sorts by longitude, and relabels regions accordingly.
@@ -78,10 +79,21 @@ def process_blob(image_to_segment, intensity_image, LatLims, lon_lims, timearray
         image_to_segment, intensity_image, threshold_abs, mode
     )
 
-    def rowcol_to_latlon(row, col):
-        lat = (90 - LatLims[0]) - row
-        lon = lon_lims[1] - col
+    #def rowcol_to_latlon(row, col):
+    #    lat = (90 - LatLims[0]) - row
+    #    lon = lon_lims[1] - col
+    #    return lat, lon
+    def rowcol_to_latlon(row, col, dataversion=2): ####!!!!! It's got to be this, need to multiply 90*20 for HST
+        if dataversion=='H':
+            scale=20
+        else:
+            scale=1
+        lat = (90 - LatLims[0]) - row/scale
+        lon = lon_lims[1] - col/scale
+        #lat = (90 - LatLims[0]) - row
+        #lon = lon_lims[1] - col
         return lat, lon
+
 
     # Step 2: Merge each region from props_data and props_intensity by label
     props_by_label = {}
@@ -259,6 +271,7 @@ def plot_regions_on_axis(
     ax,
     labeled_image,
     merged_props,
+    dataversion=2,
     plot_labels=True,
     plot_contours=True,
     plot_masks=False,
@@ -277,23 +290,35 @@ def plot_regions_on_axis(
     unique_labels = np.unique(labeled_image)
     unique_labels = unique_labels[unique_labels != 0]  # skip background
 
-    def rowcol_to_latlon(row, col):
-        lat = (90 - LatLims[0]) - row
-        lon = lon_lims[1] - col
+    def rowcol_to_latlon(row, col, dataversion=2): ####!!!!! It's got to be this, need to multiply 90*20 for HST
+        if dataversion=='H':
+            scale=20
+        else:
+            scale=1
+        lat = (90 - LatLims[0]) - row/scale
+        lon = lon_lims[1] - col/scale
+        #lat = (90 - LatLims[0]) - row
+        #lon = lon_lims[1] - col
         return lat, lon
-
+    
     # Plot shaded masks in lat-lon
+    if dataversion=='H':
+        scale=20
+    else:
+        scale=1
+
     if plot_masks:
         for label in unique_labels:
             mask = labeled_image == label
             rgb = plt.matplotlib.colors.to_rgb(contour_color)
-            rgba = (*rgb, mask_alpha)
+            rgba = (*rgb, mask_alpha)          
 
             rows, cols = np.where(mask)
             for r, c in zip(rows, cols):
-                lat, lon = rowcol_to_latlon(r, c)
+                lat, lon = rowcol_to_latlon(r, c, dataversion=dataversion)               
                 ax.add_patch(plt.Rectangle(
-                    (lon - 0.5, lat - 0.5), 1.0, 1.0,
+                    (lon - 0.5/scale, lat - 0.5/scale), 1.0/scale, 1.0/scale,
+                    #(lon - 0.5, lat - 0.5), 1.0, 1.0,
                     facecolor=rgba,
                     edgecolor='none',
                     linewidth=0,

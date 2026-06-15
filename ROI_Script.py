@@ -12,13 +12,14 @@ def flatten_json_agg_to_csv(data, csv_output_path):
         writer = csv.writer(csvfile)
 
         # Write header
-        header = ['obs_id', 'dateobs', 'roilabel', 'mean1', 'stdv1', 'mean2', 'stdv2',
+        header = ['obs_id', 'dateobs', 'roilabel', 'nsamples', 'mean1', 'stdv1', 'mean2', 'stdv2',
                   'slope', 'intercept', 'r_value', 'p_value', 'std_err','cov_matrix']#, 'meanamf']
         writer.writerow(header)
 
         for obs_id, entry in data.items():
             dateobs = entry['dateobs']
             roilabels = entry['roilabel']
+            nsamples = entry['nsamples']
             mean1 = entry['mean1']
             stdv1 = entry['stdv1']
             mean2 = entry['mean2']
@@ -36,6 +37,7 @@ def flatten_json_agg_to_csv(data, csv_output_path):
                     obs_id,
                     dateobs,
                     roilabels[i],
+                    nsamples[i],
                     mean1[i],
                     stdv1[i],
                     mean2[i],

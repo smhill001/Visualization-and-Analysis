@@ -1,5 +1,6 @@
 def make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
-                                 coef=0.0,FiveMicron=False):
+                                 coef=0.0,FiveMicron=False,param_name=False,
+                                 dataversion=2):
     import numpy as np
     if coef==0.0:
         correction='_C0'
@@ -23,13 +24,16 @@ def make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
         fnout=filename+fnskeleton
     elif Level=='L3':
         fnout=filename[:-5]+fnskeleton
+    if dataversion=='H':
+        fnout=filename[:-5]+fnskeleton
+        fnout=fnout.replace('.png',' '+param_name+'.png')
     return fnout
 
 
 def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,LonLimsWest,LonRng,PlotCM,
                     amfdata,coef,low,high,showbands,FiveMicron,figxy,ct,pathout,
-                    Level='L3',suptitle="Test",cbar_rev=False,cont=False,cbar_title="Test",
-                    ROI=False,smoothcont=0,dataversion=2,noplot=False):
+                    Level='L3',param_name=False,suptitle="Test",cbar_rev=False,cont=False,cbar_title="Test",
+                    ROI=False,smoothcont=0,dataversion=2,noplot=True,cbar_title_x=-1.0):
     """
     PURPOSE:    To create a pair of plots, the right one representing a mapped
                 data set, e.g., ammonia abundance or cloud pressure, and the 
@@ -137,7 +141,8 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
                                      PlotCM,LonRng,ct,axs1[0],'%3.2f',
                                      n=6,vn=low,vx=high,
                                      #cbar_title=cbar_title,cbar_reverse=cbar_rev)
-                                     cbar_title=cbttl,cbar_reverse=cbar_rev)
+                                     cbar_title=cbttl,cbar_reverse=cbar_rev,
+                                     cbar_title_x=-0.5)
     
     if cont:
         #temp=PC.plot_contours_on_patch(axs1[0],data_patch,LatLims,LonLims,
@@ -161,14 +166,18 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
 
     #Logic in RGB_patch depends on LonLims and CM being consistent
     #RGB_patch=MPRGB.make_patch_RGB(RGB,LatLims,LonLims,PlotCM,LonRng)
+    
     RGB_patch=MP.make_patch(RGB,LatLims,LonLimsEast,PlotCM,LonRng)
     
     RGB4Display=np.power(np.array(RGB_patch).astype(float),gamma)
     RGB4Display=RGB4Display/RGB4Display.max()
-    show=axs1[1].imshow(RGB4Display,
-               extent=[360-LonLimsEast[0],360-LonLimsEast[1],90-LatLims[1],
-                       90-LatLims[0]],
-                       aspect="equal")
+    RGBdata_patch,RGBvn,RGBvx,RGBtx,RGBcbar=PP.plot_patch(RGB4Display,LatLims,LonLimsEast,
+                                     PlotCM,LonRng,ct,axs1[1],'%3.2f',
+                                     n=6,vn=low,vx=high,
+                                     #cbar_title=cbar_title,cbar_reverse=cbar_rev)
+                                     cbar_title=cbttl,cbar_reverse=cbar_rev)
+    RGBcbar.remove()
+
     if cont:
         #temp=PC.plot_contours_on_patch(axs1[1],data_patch,LatLims,LonLims,
         #                       tx,frmt='%3.0f',clr='k')
@@ -221,13 +230,14 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
     axs1[1].set_xlabel("Sys. "+LonSys+" Longitude (deg)",fontsize=10)
     axs1[1].grid(linewidth=0.2)
 
-    fig1.subplots_adjust(left=0.10, bottom=0.03, right=0.98, top=0.95,
-                wspace=0.25, hspace=0.05)     
-    axs1[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 1.015, box.height * 1.015])
+    fig1.subplots_adjust(left=0.10, bottom=0.03, right=0.98, top=0.95)#,
+                #wspace=0.25, hspace=0.05)     
+    #axs1[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 1.015, box.height * 1.015])
 
     print("#filename,Level,LonSys,LatLims,LonLimsEast=",filename,Level,LonSys,LatLims,LonLimsEast)
     fnout=make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLimsEast,
-                                 coef=0.0,FiveMicron=False)
+                                 coef=0.0,FiveMicron=False,
+                                 dataversion=dataversion,param_name=param_name)
     print("############# pathout=",pathout)
     print("############# fnout=",fnout)
     fig1.savefig(pathout+fnout,dpi=300)
