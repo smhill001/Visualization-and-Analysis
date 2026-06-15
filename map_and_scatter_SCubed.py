@@ -1,4 +1,4 @@
-def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
+def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
                     LatLims,LonLimsWest,LonRng,PlotCM,fnout,
                     amfdata,coef,txinx,txiny,xlow,xhigh,ylow,yhigh,figxy,
                     ctbls,pathout,Ltitle,Rtitle,Level='L3',
@@ -248,17 +248,17 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
     
     if swap_xy and ROI:
         print("Calling ROI",maptitles[2],maptitles[0])
-        roilabel,mean1,stdv1,mean2,stdv2=prs.plot_roi_scatter(patchx,patchy,PlotCM,
+        ROIout=prs.plot_roi_scatter(obskey,dateobs,patchx,patchy,PlotCM,
                  LatLims,LonLimsEast,axs1,xlow,xhigh,ylow,yhigh,FiveMicron,
                  axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
                  dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
     if not swap_xy and ROI:    
         print("Calling ROI",maptitles[2],maptitles[0])
-        roilabel,mean1,stdv1,mean2,stdv2=prs.plot_roi_scatter(patchy,patchx,PlotCM,
+        ROIout=prs.plot_roi_scatter(obskey,dateobs,patchy,patchx,PlotCM,
                  LatLims,LonLimsEast,axs1,ylow,yhigh,xlow,xhigh,FiveMicron,
                  axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
                  dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
-        
+       
         
     axs3[1].tick_params(axis='both', which='major', labelsize=9)
 
@@ -309,17 +309,6 @@ def map_and_scatter_SCubed(patchx,patchy,mapydata,RGBpatch,dateobs,LonSys,
                 
                 clrind=clrind+1
 
-    #box = axs3[1].get_position()
-    #axs3[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 0.5, box.height * 1.015])    
-    #fig3.subplots_adjust(left=0.02, right=0.95, top=0.92, bottom=0.10)
-    #subfig_left.subplots_adjust(left=0.01, right=0.95, top=0.92, bottom=0.10)
-    #for ax in axs3:
-    #    ax.tick_params(axis='y', pad=1)
-    #for ax in axs3:
-    #    print(ax.get_position())
     #fig3.savefig(pathout+fnout[:-4]+' scatter.png',dpi=300)
     
-    if not ROI:
-        meanamf=False
-
-    return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,fig3,axs1,axs3,fnout)#,meanamf)
+    return ROIout,fig3,axs1,axs3,fnout

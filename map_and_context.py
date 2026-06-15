@@ -177,10 +177,6 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
                                      #cbar_title=cbar_title,cbar_reverse=cbar_rev)
                                      cbar_title=cbttl,cbar_reverse=cbar_rev)
     RGBcbar.remove()
-    #show=axs1[1].imshow(RGB4Display,
-    #           extent=[360-LonLimsEast[0],360-LonLimsEast[1],90-LatLims[1],
-    #                   90-LatLims[0]],
-    #                   aspect="equal")
     
     if cont:
         #temp=PC.plot_contours_on_patch(axs1[1],data_patch,LatLims,LonLims,

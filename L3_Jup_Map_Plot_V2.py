@@ -323,8 +323,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     ## Compute Band or ROI Scatter Plot (PCloud vs fNH3)
     ###########################################################################
     if "scatter" in plotoptions:
-        dateobs,roilabel,mean1,stdv1,mean2,stdv2,figscatter,axsscatter,axsmaps,fnout= \
-            masc.map_and_scatter_SCubed(fNH3_patch_mb,PCld_patch,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
+        ROIout,figscatter,axsscatter,axsmaps,fnout=masc.map_and_scatter_SCubed(obskey,fNH3_patch_mb,PCld_patch,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
             CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
             amfdata,coef[0],tx_fNH3,tx_PCld,fNH3low,fNH3high,PCldlow,PCldhigh,
             figxy,ctbls,pathmapplots,"PCloud & fNH3",
@@ -334,8 +333,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
             axis_inv=True,ROI=ROI,cont=("contours" in plotoptions),
             smoothcont=smoothcont,dataversion=dataversion)
-        ROIout={obskey:{'dateobs':dateobs,'roilabel':roilabel,'mean1':mean1,'stdv1':stdv1,
-                'mean2':mean2,'stdv2':stdv2}}#,'meanamf':meanamf}}
         print("############### ROIout= ",ROIout)
         print()
         ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' fNH3vPCld ROI.csv')
@@ -370,17 +367,17 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             fNH3_mask, labeled_fNH3, props_fNH3= \
                 FB.process_blob(fNH3_patch_mb, PCld_patch, CoLatLims, NH3LonLims, 
                                 timearray='None',
-                                threshold_abs=NH3thresh, mode='max')
+                                threshold_abs=NH3thresh, mode='max',dataversion=dataversion)
             
             Plum_mask, labeled_Plum, props_Plum= \
                 FB.process_blob(PCld_patch, fNH3_patch_mb, CoLatLims, NH3LonLims, 
                                 timearray='None', 
-                                threshold_abs=Cloudthresh, mode='min')
+                                threshold_abs=Cloudthresh, mode='min',dataversion=dataversion)
             
             NEDF_mask, labeled_NEDF, props_NEDF= \
                 FB.process_blob(PCld_patch, fNH3_patch_mb, CoLatLims, NH3LonLims, 
                                 timearray='None', 
-                                threshold_abs=NEDFthresh, mode='max')
+                                threshold_abs=NEDFthresh, mode='max',dataversion=dataversion)
                 
             import make_lat_lon_str as MLLS
             latstr,lonstr=MLLS.make_lat_lon_str(CoLatLims,NH3LonLims)
@@ -404,13 +401,16 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                     lon_lims=NH3LonLims,LatLims=CoLatLims,
                                     plot_contours=False, plot_masks=True,
                                     plot_labels=False, contour_color='black')
+            #axsmaps[1].ylim=[-45.,45.]
+            #LonLimsEast=[360-NH3LonLims[1],360-NH3LonLims[0]]
+            #axsmaps[1].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
+
         figscatter.savefig(pathmapplots+fnout[:-4]+' scatter.png',dpi=300)
 
 
         if dataversion=='H':
             ctbls=['Spectral','Greys_r']
-            dateobs,roilabel,mean1,stdv1,mean2,stdv2,figscatter,axsscatter,axsmaps,fnout= \
-                masc.map_and_scatter_SCubed(CI_patch,AOI_patch,AOIdata,RGB4Display,AOIhdr['DATE-OBS'],LonSys,
+            ROIout,figscatter,axsscatter,axsmaps,fnout=masc.map_and_scatter_SCubed(obskey,CI_patch,AOI_patch,AOIdata,RGB4Display,AOIhdr['DATE-OBS'],LonSys,
                 CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
                 amfdata,coef[0],tx_AOI,tx_CI,CIlow,CIhigh,AOIlow,AOIhigh,
                 figxy,ctbls,pathmapplots,"PCloud & fNH3",
@@ -419,8 +419,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                            "Color Index (CI)"],
                 cbar_rev=False,cbar_title="Cloud-top Pressure (mb)",
                 axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
-            ROIout={obskey:{'dateobs':dateobs,'roilabel':roilabel,'mean1':mean1,'stdv1':stdv1,
-                    'mean2':mean2,'stdv2':stdv2}}#,'meanamf':meanamf}}
             ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' AOIvCI ROI.csv')
             print("############### ROIout= ",ROIout)
         
@@ -444,8 +442,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         resid_ABlow=-0.8
         resid_ABhigh=0.8
 
-        dateobs,roilabel,mean1,stdv1,mean2,stdv2,figscatter,axsscatter,axsmaps,fnout= \
-            masc.map_and_scatter_SCubed(cc2d,resid_AB,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
+        ROIout,figscatter,axsscatter,axsmaps,fnout=masc.map_and_scatter_SCubed(obskey,cc2d,resid_AB,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
             CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
             amfdata,coef[0],tx_fNH3,tx_PCld,cc2dlow,cc2dhigh,resid_ABlow,resid_ABhigh,
             figxy,ctbls,pathmapplots,"Normalized fNH3 Residuals and Box Correlation",
@@ -453,8 +450,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                        "Context Image (673/502/395nm)",
                        "5x5 deg Box Correlation"],cbar_rev=False,cbar_title="Cloud-top Pressure (mb)",
             axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
-        ROIout={obskey:{'dateobs':dateobs,'roilabel':roilabel,'mean1':mean1,'stdv1':stdv1,
-                'mean2':mean2,'stdv2':stdv2}}#,'meanamf':meanamf}}
         ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+obskey+' residvcc2d ROI.csv')
 
         figscatter.savefig(pathmapplots+fnout[:-4]+' scatter.png',dpi=300)
@@ -483,10 +478,10 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                         cbar_rev=False,swap_xy=False,
                         axis_inv=True,cbar_title="Log10(5um radiance)")
    
-    #print("#############################")
-    #print("ROIout[obskey].keys()=",ROIout[obskey].keys())
-    #print("ROIout[obskey]['cov_matrix'][0]=",ROIout[obskey]['cov_matrix'][0])
-    #print("ROIout[obskey]['nsamples']=",ROIout[obskey]['nsamples'])
+    print("#############################")
+    print("ROIout[obskey].keys()=",ROIout[obskey].keys())
+    print("ROIout[obskey]['cov_matrix'][0]=",ROIout[obskey]['cov_matrix'][0])
+    print("ROIout[obskey]['nsamples']=",ROIout[obskey]['nsamples'])
     if "scatter" in plotoptions:
         return(ROIout)
     #return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf)

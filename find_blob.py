@@ -53,7 +53,7 @@ def find_blob(image_to_segment, intensity_image,threshold_abs=None, mode='max'):
 
 
 def process_blob(image_to_segment, intensity_image, LatLims, lon_lims, 
-                 timearray=None, threshold_abs=None, mode='max'):
+                 timearray=None, threshold_abs=None, mode='max',dataversion=2):
     """
     Segments blobs, converts coordinates to lat/lon, merges regionprops from both images,
     sorts by longitude, and relabels regions accordingly.
@@ -79,10 +79,21 @@ def process_blob(image_to_segment, intensity_image, LatLims, lon_lims,
         image_to_segment, intensity_image, threshold_abs, mode
     )
 
-    def rowcol_to_latlon(row, col):
-        lat = (90 - LatLims[0]) - row
-        lon = lon_lims[1] - col
+    #def rowcol_to_latlon(row, col):
+    #    lat = (90 - LatLims[0]) - row
+    #    lon = lon_lims[1] - col
+    #    return lat, lon
+    def rowcol_to_latlon(row, col, dataversion=2): ####!!!!! It's got to be this, need to multiply 90*20 for HST
+        if dataversion=='H':
+            scale=20
+        else:
+            scale=1
+        lat = (90 - LatLims[0]) - row/scale
+        lon = lon_lims[1] - col/scale
+        #lat = (90 - LatLims[0]) - row
+        #lon = lon_lims[1] - col
         return lat, lon
+
 
     # Step 2: Merge each region from props_data and props_intensity by label
     props_by_label = {}
@@ -297,7 +308,6 @@ def plot_regions_on_axis(
         scale=1
 
     if plot_masks:
-
         for label in unique_labels:
             mask = labeled_image == label
             rgb = plt.matplotlib.colors.to_rgb(contour_color)
@@ -314,7 +324,7 @@ def plot_regions_on_axis(
                     linewidth=0,
                     zorder=2
                 ))
-            #return
+
     # Plot contours in lat-lon
     if plot_contours:
         for label in unique_labels:
