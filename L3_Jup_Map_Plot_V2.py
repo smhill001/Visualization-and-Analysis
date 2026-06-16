@@ -4,7 +4,7 @@ from scipy.signal import convolve2d
 import plot_patch as pp
 import matplotlib.pyplot as pl
 hostname = socket.gethostname()
-from config_VA import Host_path
+from config_VA import Host_path, Profile_code
 
 
 def rolling_corr2d(A, B, wdeg,dataversion=2):
@@ -351,8 +351,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             axsscatter.plot([200,200],[700,5000],label="Bjoraker++ 2018")
             axsscatter.fill_betweenx([700,5000],[150,150],[250,250],alpha=0.1)
             
-            sys.path.append("C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Profiles/code/")
-            #sys.path.append("/mnt/data/git_repos/Jupiter_NH3_Analysis_P3/Profiles/code/")
+            sys.path.append(Profile_code[hostname])
             import Profile_Vertical_Fletcher
             pressavg,fNH3avg=Profile_Vertical_Fletcher.Profile_Vertical_Fletcher(plot=False)
             axsscatter.plot(np.array(fNH3avg),np.array(pressavg)*1000.,label='Fletcher++ 2020')
