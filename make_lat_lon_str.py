@@ -1,4 +1,5 @@
-def make_lat_lon_str(lats,LonLims):
+import numpy as np
+def make_lat_lon_str(lats,LonLimsEast):
     """
     Creates strings for insertion into file names for the latitude and
     longitude range of a give map.
@@ -19,18 +20,19 @@ def make_lat_lon_str(lats,LonLims):
 
     """
     if int(lats[0])<90:
-        latstr=str(90-lats[0])+"N"
+        latstr="N"+str(90-lats[0])
     if int(lats[0])==90:
-        latstr=str(90-lats[0])
+        latstr="S0"+str(90-lats[0])
     if int(lats[0])>90:
-        latstr=str(lats[0]-90)+"S"
+        latstr="S"+str(lats[0]-90)
         
     if int(lats[1])<90:
-        latstr=latstr+"-"+str(90-lats[1])+"N"
+        latstr=latstr+"-N"+str(90-lats[1])
     if int(lats[1])==90:
-        latstr=latstr+"-"+str(90-lats[1])
+        latstr=latstr+"-S0"+str(90-lats[1])
     if int(lats[1])>90:
-        latstr=latstr+"-"+str(lats[1]-90)+"S"
+        latstr=latstr+"-S"+str(lats[1]-90)
         
-    lonstr=str(LonLims[0])+"-"+str(LonLims[1])
+    lonstr=str(np.mod(360-LonLimsEast[1],360)).zfill(3)+"-"+str(np.mod(360-LonLimsEast[0],360)).zfill(3)
+    
     return latstr,lonstr

@@ -1,38 +1,10 @@
-def make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLims,
-                                 coef=0.0,FiveMicron=False,param_name=False,
-                                 dataversion=2):
-    import numpy as np
-    if coef==0.0:
-        correction='_C0'
-    else:
-        correction='_C1'
-    #print("360-LonLims[0],360-LonLims[1]=",360-LonLims[0],360-LonLims[1])
-    if FiveMicron:
-        fnskeleton=correction+'_Sys'+LonSys+'_N'+\
-                    str(90-LatLims[0])+'-S'+str(LatLims[1]-90)+\
-                    '_Lon'+str(np.mod(360-LonLims[1],360)).zfill(3)+'-'+\
-                        str(np.mod(360-LonLims[0],360)).zfill(3)+'_5micron.png'
-    else:
-        fnskeleton=correction+'_Sys'+LonSys+'_N'+\
-                    str(90-LatLims[0])+'-S'+str(LatLims[1]-90)+\
-                    '_Lon'+str(np.mod(360-int(LonLims[1]),360)).zfill(3)+'-'+\
-                        str(np.mod(360-int(LonLims[0]),360)).zfill(3)+'.png'
+import make_L2_L3_map_png_filenames as mfn
 
-    ###!!!! Temporary fix for the fact that L2 header FILENAME doesn't contain
-    ###!!!! the file extension and L3 header FILENAME does!
-    if Level=='L2':
-        fnout=filename+fnskeleton
-    elif Level=='L3':
-        fnout=filename[:-5]+fnskeleton
-    if dataversion=='H':
-        fnout=filename[:-5]+fnskeleton
-        fnout=fnout.replace('.png',' '+param_name+'.png')
-    return fnout
-
-
-def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,LonLimsWest,LonRng,PlotCM,
+def map_and_context(obskey,mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,
+                    LatLims,LonLimsWest,LonRng,PlotCM,
                     amfdata,coef,low,high,showbands,FiveMicron,figxy,ct,pathout,
-                    Level='L3',param_name=False,suptitle="Test",cbar_rev=False,cont=False,cbar_title="Test",
+                    Level='L3',param_name=False,suptitle="Test",cbar_rev=False,
+                    cont=False,cbar_title="Test",
                     ROI=False,smoothcont=0,dataversion=2,noplot=True,cbar_title_x=-1.0):
     """
     PURPOSE:    To create a pair of plots, the right one representing a mapped
@@ -235,7 +207,7 @@ def map_and_context(mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,LatLims,Lo
     #axs1[1].set_position([box.x0+0.03, box.y0-0.01, box.width * 1.015, box.height * 1.015])
 
     print("#filename,Level,LonSys,LatLims,LonLimsEast=",filename,Level,LonSys,LatLims,LonLimsEast)
-    fnout=make_L2_L3_map_png_filenames(filename,Level,LonSys,LatLims,LonLimsEast,
+    fnout=mfn.make_L2_L3_map_png_filenames(obskey,filename,Level,LonSys,LatLims,LonLimsEast,
                                  coef=0.0,FiveMicron=False,
                                  dataversion=dataversion,param_name=param_name)
     print("############# pathout=",pathout)

@@ -107,12 +107,13 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
     ###########################################################################
   
     fig3 = pl.figure(figsize=(8,4.5),dpi=150,facecolor="white")
+    fig3.suptitle(obskey)
 
     gs = fig3.add_gridspec(
         3, 2,
         left=-0.05,
         right=0.98,
-        top=0.94,
+        top=0.88,
         bottom=0.10,
         wspace=0.0,
         hspace=0.4
@@ -289,7 +290,5 @@ def map_and_scatter_SCubed(obskey,patchx,patchy,mapydata,RGBpatch,dateobs,LonSys
                                 color=clr)
                 
                 clrind=clrind+1
-
-    #fig3.savefig(pathout+fnout[:-4]+' scatter.png',dpi=300)
     
     return ROIout,fig3,axs1,axs3,fnout
