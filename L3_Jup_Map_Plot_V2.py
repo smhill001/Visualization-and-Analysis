@@ -4,11 +4,39 @@ from scipy.signal import convolve2d
 import plot_patch as pp
 import matplotlib.pyplot as pl
 import make_L2_L3_map_png_filenames as mfn
-
+import csv
 hostname = socket.gethostname()
 from config_VA import Host_path, Profile_code
 
 
+def write_Mahal_out(Mahalanobis_out,pathmapplots,fnout):
+    with open(pathmapplots+fnout.replace('.png','_Mahal2Parent.csv'), "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        # Write the header row
+        writer.writerow(["roi", "D2", "D"])      
+        # Process the lines
+        for roi, vals in Mahalanobis_out['parent_results'].items():
+            # Write the cleaned row to the CSV
+            writer.writerow([roi, vals['D2'],vals['D']])
+    # Open the CSV file for writing
+    with open(pathmapplots+fnout.replace('.png','_MahalPairwise.csv'), "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        # Write the header row
+        writer.writerow(Mahalanobis_out['pairwise']['labels'])      
+        # Process the lines
+        for i in range(0,len(Mahalanobis_out['pairwise']['labels'])):
+            vals=Mahalanobis_out['pairwise']['D'][i,:]
+            # Write the cleaned row to the CSV
+            writer.writerow(vals)
+    with open(pathmapplots+fnout.replace('.png','_MahalPairwiseROI.csv'), "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        # Write the header row
+        writer.writerow(Mahalanobis_out['pairwise_roi']['labels'])      
+        # Process the lines
+        for i in range(0,len(Mahalanobis_out['pairwise_roi']['labels'])):
+            vals=Mahalanobis_out['pairwise_roi']['D'][i,:]
+            # Write the cleaned row to the CSV
+            writer.writerow(vals)
 def rolling_corr2d(A, B, wdeg,dataversion=2):
     
     if dataversion=='H':
@@ -58,7 +86,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                         CMpref='subobs',LonSys='2',showbands=False,
                         coef=[0.,0.],subproj='',figxy=[8.0,4.0],FiveMicron=False,
                         plotoptions=["contours","surface"],
-                        ROI=False,segment=False,
+                        ROI_ID=False,ROI=False,segment=False,
                         LimbCorrection=False,dataversion=2,smoothcont=0,
                         compare=False):
     """
@@ -95,7 +123,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     sys.path.append('C:/Astronomy/Projects/SAS 2021 Ammonia/Data-Management-and-Access/Tests')
 
     import os
-    import csv
     import read_fits_V2 as RF2
     import numpy as np
     from astropy.io import fits
@@ -330,12 +357,12 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     ## Compute Band or ROI Scatter Plot (PCloud vs fNH3)
     ###########################################################################
     if "scatter" in plotoptions:
-
-        ROIout,figscatter,axsscatter,axsmaps,fnout=masc.map_and_scatter_SCubed(obskey,fNH3_patch_mb,PCld_patch,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
-            CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
+        print("#########################", obskey)
+        ROIout,Mahalanobis_out,figscatter,axsscatter,axsmaps=masc.map_and_scatter_SCubed(obskey,ROI_ID,fNH3_patch_mb,PCld_patch,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
+            CoLatLims,NH3LonLims,LonRng,PCldPlotCM,
             amfdata,coef[0],tx_fNH3,tx_PCld,fNH3low,fNH3high,PCldlow,PCldhigh,
-            figxy,ctbls,pathmapplots,"PCloud & fNH3",
-            "PCloud vs fNH3",Level='L3',maptitles=["Cloud Pressure (mb)",
+            figxy,ctbls,pathmapplots,"Blank","Ammonia Mole Fraction vs Cloud Pressure",
+            Level='L3',maptitles=["Cloud Pressure (mb)",
                        "Context Image (673/502/395nm)",
                        "Ammonia Mole Fraction (ppm)"],
             cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
@@ -343,9 +370,14 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             smoothcont=smoothcont,dataversion=dataversion)
         print("############### ROIout= ",ROIout)
         print()
+
+        # Open the CSV file for writing
+        print("###############################")
+        print("###############################")
         fnout=mfn.make_L2_L3_map_png_filenames(obskey,fnNH3,'L3',LonSys,CoLatLims,LonLimsEast,
                                      coef=0.0,FiveMicron=False,
                                      dataversion=dataversion,param_name='PCld_vs_fNH3')
+        write_Mahal_out(Mahalanobis_out,pathmapplots,fnout)
         ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+fnout.replace('.png','_ROI.csv'))
         
         #######################################################################
@@ -397,13 +429,22 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                 
             import make_lat_lon_str as MLLS
             latstr,lonstr=MLLS.make_lat_lon_str(CoLatLims,NH3LonLims)
-            
+
+            fnout=mfn.make_L2_L3_map_png_filenames(obskey,fnNH3,'L3',LonSys,CoLatLims,LonLimsEast,
+                                         coef=0.0,FiveMicron=False,
+                                         dataversion=dataversion,param_name='Gyre')
             FB.export_regions_to_csv(props_fNH3, NH3thresh, 
-                                     pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NH3thresh)+" fNH3.csv")
+                                     pathmapplots+fnout.replace('.png','.csv'))
+            fnout=mfn.make_L2_L3_map_png_filenames(obskey,fnNH3,'L3',LonSys,CoLatLims,LonLimsEast,
+                                         coef=0.0,FiveMicron=False,
+                                         dataversion=dataversion,param_name='Plume')
             FB.export_regions_to_csv(props_Plum, Cloudthresh, 
-                                     pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(Cloudthresh)+" Plum.csv")
+                                     pathmapplots+fnout.replace('.png','.csv'))
+            fnout=mfn.make_L2_L3_map_png_filenames(obskey,fnNH3,'L3',LonSys,CoLatLims,LonLimsEast,
+                                         coef=0.0,FiveMicron=False,
+                                         dataversion=dataversion,param_name='HotSpot')
             FB.export_regions_to_csv(props_NEDF, NEDFthresh, 
-                                     pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NEDFthresh)+" NEDF.csv")
+                                     pathmapplots+fnout.replace('.png','.csv'))
             print("$$$$$$$$$$$$$$$$$$$$$$$$$",CoLatLims,NH3LonLims)
 
             FB.plot_regions_on_axis(axsmaps[1], labeled_fNH3, props_fNH3,dataversion=dataversion,
@@ -424,11 +465,11 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
 
         if dataversion=='H':
             ctbls=['Spectral','Greys_r']
-            ROIout,figscatter,axsscatter,axsmaps,fnout=masc.map_and_scatter_SCubed(obskey,CI_patch,AOI_patch,AOIdata,RGB4Display,AOIhdr['DATE-OBS'],LonSys,
-                CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
+            ROIout,Mahalanobis_out,figscatter,axsscatter,axsmaps=masc.map_and_scatter_SCubed(obskey,ROI_ID,CI_patch,AOI_patch,AOIdata,RGB4Display,AOIhdr['DATE-OBS'],LonSys,
+                CoLatLims,NH3LonLims,LonRng,PCldPlotCM,
                 amfdata,coef[0],tx_AOI,tx_CI,CIlow,CIhigh,AOIlow,AOIhigh,
-                figxy,ctbls,pathmapplots,"PCloud & fNH3",
-                "AOI vs CI",Level='L3',maptitles=["Altitude Opacity Index (AOI)",
+                figxy,ctbls,pathmapplots,"Blank","Altitude Opacity Index vs Color Index",
+                Level='L3',maptitles=["Altitude Opacity Index (AOI)",
                            "Context Image (673/502/395nm)",
                            "Color Index (CI)"],
                 cbar_rev=False,cbar_title="Cloud-top Pressure (mb)",
@@ -436,6 +477,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             fnout=mfn.make_L2_L3_map_png_filenames(obskey,fnNH3,'L3',LonSys,CoLatLims,LonLimsEast,
                                          coef=0.0,FiveMicron=False,
                                          dataversion=dataversion,param_name='AOI_vs_CI')
+            write_Mahal_out(Mahalanobis_out,pathmapplots,fnout)
             ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+fnout.replace('.png','_ROI.csv'))
             print("############### ROIout= ",ROIout)
                 
@@ -455,17 +497,18 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         ctbls=["seismic_r","BrBG"]
         cc2dlow, cc2dhigh, resid_ABlow, resid_ABhigh = -1, 1, -0.8, 0.8
 
-        ROIout,figscatter,axsscatter,axsmaps,fnout=masc.map_and_scatter_SCubed(obskey,cc2d,resid_AB,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
-            CoLatLims,NH3LonLims,LonRng,PCldPlotCM,fnNH3,
+        ROIout,Mahalanobis_out,figscatter,axsscatter,axsmaps=masc.map_and_scatter_SCubed(obskey,ROI_ID,cc2d,resid_AB,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
+            CoLatLims,NH3LonLims,LonRng,PCldPlotCM,
             amfdata,coef[0],tx_fNH3,tx_PCld,cc2dlow,cc2dhigh,resid_ABlow,resid_ABhigh,
-            figxy,ctbls,pathmapplots,"Normalized fNH3 Residuals and Box Correlation",
-            "Resid vs Correl",Level='L3',maptitles=["Normalized Residuals (fNH3 - PCld)",
+            figxy,ctbls,pathmapplots,"Blank","Normalized fNH3 Residuals vs Box Correlation",
+            Level='L3',maptitles=["Normalized Residuals (fNH3 - PCld)",
                        "Context Image (673/502/395nm)",
                        "5x5 deg Box Correlation"],cbar_rev=False,cbar_title="Cloud-top Pressure (mb)",
             axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
         fnout=mfn.make_L2_L3_map_png_filenames(obskey,fnNH3,'L3',LonSys,CoLatLims,LonLimsEast,
                                      coef=0.0,FiveMicron=False,
                                      dataversion=dataversion,param_name='Resid_vs_Correl')
+        write_Mahal_out(Mahalanobis_out,pathmapplots,fnout)
         ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+fnout.replace('.png','_ROI.csv'))
 
         figscatter.savefig(pathmapplots+fnout.replace('.png','_scatter.png'),dpi=300)
@@ -493,17 +536,13 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                         cbar_rev=False,swap_xy=False,
                         axis_inv=True,cbar_title="Log10(5um radiance)")
    
-    print("#############################")
-    print("ROIout[obskey].keys()=",ROIout[obskey].keys())
-    print("ROIout[obskey]['cov_matrix'][0]=",ROIout[obskey]['cov_matrix'][0])
-    print("ROIout[obskey]['nsamples']=",ROIout[obskey]['nsamples'])
-    
-    print()
-    print()
-    print("NH3LonLims(West)=",NH3LonLims)
-    print("LonLimsEast=",LonLimsEast)
-    if "scatter" in plotoptions:
-        return(ROIout)
+    if ROI:
+        print("#############################")
+        print("ROIout[obskey].keys()=",ROIout[obskey].keys())
+        print("ROIout[obskey]['cov_matrix'][0]=",ROIout[obskey]['cov_matrix'][0])
+        print("ROIout[obskey]['nsamples']=",ROIout[obskey]['nsamples'])
+    #if "scatter" in plotoptions:
+    #    return(ROIout)
     #return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf)
 
 

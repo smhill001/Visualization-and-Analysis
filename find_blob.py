@@ -111,19 +111,19 @@ def process_blob(image_to_segment, intensity_image, LatLims, lon_lims,
         # Coordinates from segmentation image
         if hasattr(region_data, 'centroid'):
             r, c = region_data.centroid
-            lat, lon = rowcol_to_latlon(r, c)
+            lat, lon = rowcol_to_latlon(r, c,dataversion=dataversion)
             props_by_label[region_data.label]['centroid'] = (r, c)
             props_by_label[region_data.label]['centroid_latlon'] = (lat, lon)
             props_by_label[region_data.label]['centroid_lon'] = lon
 
         if hasattr(region_data, 'weighted_centroid'):
             r, c = region_data.weighted_centroid
-            lat, lon = rowcol_to_latlon(r, c)
+            lat, lon = rowcol_to_latlon(r, c,dataversion=dataversion)
             props_by_label[region_data.label]['weighted_centroid'] = (r, c)
             props_by_label[region_data.label]['weighted_centroid_latlon'] = (lat, lon)
 
         if hasattr(region_data, 'coords'):
-            coords_latlon = [rowcol_to_latlon(r, c) for r, c in region_data.coords]
+            coords_latlon = [rowcol_to_latlon(r, c,dataversion=dataversion) for r, c in region_data.coords]
             props_by_label[region_data.label]['coords'] = region_data.coords
             props_by_label[region_data.label]['coords_latlon'] = coords_latlon
             
@@ -174,7 +174,7 @@ def process_blob(image_to_segment, intensity_image, LatLims, lon_lims,
 
         if hasattr(region_data, 'weighted_centroid'):
             r, c = region_data.weighted_centroid
-            lat, lon = rowcol_to_latlon(r, c)
+            lat, lon = rowcol_to_latlon(r, c,dataversion=dataversion)
             props_by_label[region_data.label]['weighted_centroid'] = (r, c)
             props_by_label[region_data.label]['weighted_centroid_latlon'] = (lat, lon)
 
@@ -331,7 +331,7 @@ def plot_regions_on_axis(
             mask = labeled_image == label
             contours = find_contours(mask.astype(float), 0.5)
             for contour in contours:
-                latlon_contour = np.array([rowcol_to_latlon(r, c) for r, c in contour])
+                latlon_contour = np.array([rowcol_to_latlon(r, c,dataversion=dataversion) for r, c in contour])
                 ax.plot(
                     latlon_contour[:, 1],  # longitude
                     latlon_contour[:, 0],  # latitude
