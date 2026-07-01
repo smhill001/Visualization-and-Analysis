@@ -107,7 +107,7 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
     ## Set up Compute Scatter Plot (PCloud vs fNH3)
     ###########################################################################
     fig3 = pl.figure(figsize=(8,4.5),dpi=150,facecolor="white")
-    fig3.suptitle(obskey+ROI_ID)
+    fig3.suptitle(obskey+' '+ROI_ID)
 
     gs = fig3.add_gridspec(
         3, 2,
@@ -226,12 +226,12 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
     ###########################################################################    
     else:
         if swap_xy:
-            roilabel,mean1,stdv1,mean2,stdv2,BZ=pms.plot_map_scatter(patchx,patchy,PlotCM,
+            ROIout,Mahalanobis_out,BZ=pms.plot_map_scatter(patchx,patchy,PlotCM,
                      LatLims,axs1,xlow,xhigh,ylow,yhigh,FiveMicron,axis_inv=axis_inv,
                      dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
             print("Case 1")
         if not swap_xy:     
-            ROIout,BZ=pms.plot_map_scatter(obskey,dateobs,patchy,patchx,PlotCM,
+            ROIout,Mahalanobis_out,BZ=pms.plot_map_scatter(obskey,dateobs,patchy,patchx,PlotCM,
                      LatLims,axs1,ylow,yhigh,xlow,xhigh,FiveMicron,axis_inv=axis_inv,
                      dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
             print("Case 2")

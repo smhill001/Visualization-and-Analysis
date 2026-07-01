@@ -1,3 +1,5 @@
+import plot_roi_scatter as prs
+
 def plot_map_scatter(obskey,dateobs,patch1,patch2,Real_CM2,LatLims,axscor,PCldlow,PCldhigh,
                  fNH3low,fNH3high,FiveMicron,axis_inv=False,Bands=False,
                  dataversion=2,xaxistitle='',yaxistitle=''):
@@ -74,6 +76,8 @@ def plot_map_scatter(obskey,dateobs,patch1,patch2,Real_CM2,LatLims,axscor,PCldlo
     ROIout={obskey:{'dateobs':dateobs,'roilabel':[],'nsamples':[],'mean1':[],'stdv1':[],
             'mean2':[],'stdv2':[],'slope':[],'intercept':[],
             'r_value':[],'p_value':[],'std_err':[],'cov_matrix':[]}}
+    
+    ROIout=prs.statistics_helper(ROIout,obskey,'All',patch1,patch2,'grey',axscor,alpha=0.2)
 
     counter=0
     for key in BZ.keys():
@@ -102,15 +106,20 @@ def plot_map_scatter(obskey,dateobs,patch1,patch2,Real_CM2,LatLims,axscor,PCldlo
             if dataversion=='H':
                 axscor.scatter(subpatch2,subpatch1,
                                marker=".",s=0.1,linewidths=0,
-                               alpha=1.0,label=key)
+                               alpha=1.0,label=key,c=ROIcolor)
 
             else:
                 axscor.scatter(subpatch2,subpatch1,
                                marker="o",s=3.0,
                                alpha=0.8,label=key)
             R=[BZind[key][0],BZind[key][1],]
-            ROIout=prs.statistics_helper(ROIout,obskey,R,subpatch1,subpatch2,
+            ROIout=prs.statistics_helper(ROIout,obskey,key,subpatch1,subpatch2,
                                      ROIcolor,axscor,alpha=1.0)
+            
+    parent_results=prs.mahalanobis_to_parent(ROIout, obskey)
+    Mahal_pairwise=prs.pairwise_mahalanobis(ROIout, obskey)
+    Mahal_pairwise_roi=prs.roi_pairwise_mahalanobis(ROIout, obskey)
+
 
     axscor.grid(linewidth=0.2)
     axscor.set_ylim(PCldlow,PCldhigh)
@@ -129,5 +138,10 @@ def plot_map_scatter(obskey,dateobs,patch1,patch2,Real_CM2,LatLims,axscor,PCldlo
     axscor.legend(fontsize=7,ncols=4,labelcolor='mfc')
     
     #return(keylabel,mean1,stdv1,mean2,stdv2,BZ)
-    return ROIout,BZ
+    
+    Mahalanobis_out={'parent_results':parent_results,
+                     'pairwise':Mahal_pairwise,
+                     'pairwise_roi':Mahal_pairwise_roi}   
+
+    return ROIout,Mahalanobis_out,BZ
   

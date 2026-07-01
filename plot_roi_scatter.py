@@ -239,8 +239,13 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
         RLonRng=ROI[R][3]
         RLonLims=[360-int(RCM+RLonRng),360-int(RCM-RLonRng)]
 
-        RLonLims=np.array(RLonLims)-LonLims[0]
+        RLonLims=np.array(np.array(RLonLims)-LonLims[0]).astype(int) #Just some extra protection
 
+        print(RLatLims[0],RLatLims[1],
+                         RLonLims[0],RLonLims[1])
+        print(RLatLims[0]*scale,RLatLims[1]*scale,
+                         RLonLims[0]*scale,RLonLims[1]*scale)
+        
         subpatch1=patch1[RLatLims[0]*scale:RLatLims[1]*scale,
                          RLonLims[0]*scale:RLonLims[1]*scale]
         subpatch2=patch2[RLatLims[0]*scale:RLatLims[1]*scale,
@@ -278,23 +283,27 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
         param1,param2='AOI','CI'
     else:
         plottype=False
-    if plottype:
-        subdict=GMM_Mahalanobis[obskey+ROI_ID][plottype][str(total_clusters)]
-        for cluster_number in range(0,int(total_clusters)):
-            mean1=float(subdict[param1][str(cluster_number+1)]['mean'])
-            mean2=float(subdict[param2][str(cluster_number+1)]['mean'])
-            print("GMM Data*************************************************")
-            print(mean1,mean2)
-            Test_Mahal_GMM_covariance=np.array(json.loads(subdict['covariances']))[cluster_number,:,:]
-            print(Test_Mahal_GMM_covariance)
-            print("*********************************************************")
-            if plottype=='NH3_PCld':
-                plot_Mahal_ellipse(np.flip(Test_Mahal_GMM_covariance),mean1,mean2,
-                                   axscor,'C'+str(cluster_number),alpha=0.8)
-            elif plottype=='AOI_CI':
-                plot_Mahal_ellipse(Test_Mahal_GMM_covariance,mean1,mean2,
-                                   axscor,'C'+str(cluster_number),alpha=0.8)
-            axscor.scatter([],[],label='GMM '+str(cluster_number+1))
+    if plottype and dataversion=='H':
+        print("##############################")
+        print("obskey+'-'+ROI_ID obskey+'-'+ROI_ID obskey+'-'+ROI_ID")
+        print(obskey+'-'+ROI_ID in GMM_Mahalanobis)
+        if obskey+'-'+ROI_ID in GMM_Mahalanobis:
+            subdict=GMM_Mahalanobis[obskey+'-'+ROI_ID][plottype][str(total_clusters)]
+            for cluster_number in range(0,int(total_clusters)):
+                mean1=float(subdict[param1][str(cluster_number+1)]['mean'])
+                mean2=float(subdict[param2][str(cluster_number+1)]['mean'])
+                print("GMM Data*************************************************")
+                print(mean1,mean2)
+                Test_Mahal_GMM_covariance=np.array(json.loads(subdict['covariances']))[cluster_number,:,:]
+                print(Test_Mahal_GMM_covariance)
+                print("*********************************************************")
+                if plottype=='NH3_PCld':
+                    plot_Mahal_ellipse(np.flip(Test_Mahal_GMM_covariance),mean1,mean2,
+                                       axscor,'C'+str(cluster_number),alpha=0.8)
+                elif plottype=='AOI_CI':
+                    plot_Mahal_ellipse(Test_Mahal_GMM_covariance,mean1,mean2,
+                                       axscor,'C'+str(cluster_number),alpha=0.8)
+                axscor.scatter([],[],label='GMM '+str(cluster_number+1))
         """
     print()
     print("############## Mahalanobis to parent")

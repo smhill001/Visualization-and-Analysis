@@ -445,7 +445,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                          dataversion=dataversion,param_name='HotSpot')
             FB.export_regions_to_csv(props_NEDF, NEDFthresh, 
                                      pathmapplots+fnout.replace('.png','.csv'))
-            print("$$$$$$$$$$$$$$$$$$$$$$$$$",CoLatLims,NH3LonLims)
 
             FB.plot_regions_on_axis(axsmaps[1], labeled_fNH3, props_fNH3,dataversion=dataversion,
                                     lon_lims=NH3LonLims,LatLims=CoLatLims,
@@ -491,7 +490,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             #figc,axsc=pl.subplots(1,figsize=(5,5), dpi=150, facecolor="white")
             #figc.suptitle(obskey+" Correlation")
     
-            cc2d=rolling_corr2d(norm_A,norm_B,5,dataversion=dataversion)
+            cc2d=rolling_corr2d(norm_A,norm_B,3,dataversion=dataversion)
             print("########### cc2d.shape= ",cc2d.shape,np.max(cc2d))
 
         ctbls=["seismic_r","BrBG"]
