@@ -168,7 +168,7 @@ def statistics_helper(ROIout,obskey,R,patch1,patch2,clr,axscor,alpha=1.0):
     
 def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLims,axscor,PCldlow,PCldhigh,
                  fNH3low,fNH3high,FiveMicron,axis_inv=False,ROI=False,amfpatch=False,
-                 dataversion=2,xaxistitle='',yaxistitle=''):
+                 dataversion=2,xaxistitle='',yaxistitle='',fNH3factor=1.0):
     """
     PURPOSE:    Takes two map patches and makes a scatter plot
     CALLS:      n/a
@@ -226,7 +226,8 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
             'mean2':[],'stdv2':[],'slope':[],'intercept':[],
             'r_value':[],'p_value':[],'std_err':[],'cov_matrix':[]}}
 
-    ROIout=statistics_helper(ROIout,obskey,'All',patch1,patch2,'grey',axscor,alpha=0.2)
+    ROIout=statistics_helper(ROIout,obskey,'All',patch1,patch2*fNH3factor,
+                             'grey',axscor,alpha=0.2)
     #print(np.array(ROIout[obskey]['cov_matrix'])[0,:,:])
     #plot_Mahal_ellipse(np.array(ROIout[obskey]['cov_matrix'])[0,:,:],
     #                   ROIout[obskey]['mean1'],
@@ -249,7 +250,7 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
         subpatch1=patch1[RLatLims[0]*scale:RLatLims[1]*scale,
                          RLonLims[0]*scale:RLonLims[1]*scale]
         subpatch2=patch2[RLatLims[0]*scale:RLatLims[1]*scale,
-                         RLonLims[0]*scale:RLonLims[1]*scale]
+                         RLonLims[0]*scale:RLonLims[1]*scale]*fNH3factor
 
         if dataversion=="H":
             axscor.scatter(subpatch2,subpatch1,marker=".",s=2,color=ROIcolors[R],linewidths=0,alpha=1.0,label=R)
@@ -291,7 +292,7 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
             subdict=GMM_Mahalanobis[obskey+'-'+ROI_ID][plottype][str(total_clusters)]
             for cluster_number in range(0,int(total_clusters)):
                 mean1=float(subdict[param1][str(cluster_number+1)]['mean'])
-                mean2=float(subdict[param2][str(cluster_number+1)]['mean'])
+                mean2=float(subdict[param2][str(cluster_number+1)]['mean'])*fNH3factor
                 print("GMM Data*************************************************")
                 print(mean1,mean2)
                 Test_Mahal_GMM_covariance=np.array(json.loads(subdict['covariances']))[cluster_number,:,:]

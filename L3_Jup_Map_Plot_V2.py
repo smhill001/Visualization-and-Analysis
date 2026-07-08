@@ -88,7 +88,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                         plotoptions=["contours","surface"],
                         ROI_ID=False,ROI=False,segment=False,
                         LimbCorrection=False,dataversion=2,smoothcont=0,
-                        compare=False):
+                        compare=False,fNH3factor=1.0):
     """
     Created on Sun Nov  6 16:47:21 2022
     
@@ -139,21 +139,21 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     import find_blob as FB
     ctbls=["terrain_r","Blues"]
 
-    if  dataversion==1 or dataversion==2:
-        fNH3low=60
-        fNH3high=160
-        PCldlow=1600
-        PCldhigh=2200
-    if dataversion=='H':
-        fNH3low=0
-        fNH3high=300
-        PCldlow=1000
-        PCldhigh=3500
-        AOIlow=0.1
-        AOIhigh=0.4
-        CIlow=0.35
-        CIhigh=0.75
-        
+    #if  dataversion==1 or dataversion==2:
+    #    fNH3low=60
+    #    fNH3high=160
+    #    PCldlow=1600
+    #    PCldhigh=2200
+    #if dataversion=='H':
+    fNH3low=0
+    fNH3high=400
+    PCldlow=500
+    PCldhigh=3500
+    AOIlow=0.1
+    AOIhigh=0.4
+    CIlow=0.35
+    CIhigh=0.75
+    
     micronlow=0.5
     micronhigh=3.5
     print("############### len(obskey)= ",len(obskey))
@@ -367,7 +367,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                        "Ammonia Mole Fraction (ppm)"],
             cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
             axis_inv=True,ROI=ROI,cont=("contours" in plotoptions),
-            smoothcont=smoothcont,dataversion=dataversion)
+            smoothcont=smoothcont,dataversion=dataversion,fNH3factor=fNH3factor)
         print("############### ROIout= ",ROIout)
         print()
 
@@ -384,20 +384,29 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         # COMPARISON DATA OVERPLOT
         #######################################################################
         if compare:
-            xerr=[[50],[50]]
-            yerr=[[300],[4000]]
-            axsscatter.set_xlim(10,1000)
-            axsscatter.set_ylim(10000,100)
-            axsscatter.set_xscale('log') 
-            axsscatter.set_yscale('log') 
+            #xerr=[[50],[50]]
+            #yerr=[[300],[4000]]
+            #axsscatter.set_xlim(10,1000)
+            #axsscatter.set_ylim(10000,100)
+            #axsscatter.set_xscale('log') 
+            #axsscatter.set_yscale('log') 
             #Bjoraker++ 2018 (deep values only, not saturation level above 700mb)
             axsscatter.plot([200,200],[700,5000],label="Bjoraker++ 2018")
             axsscatter.fill_betweenx([700,5000],[150,150],[250,250],alpha=0.1)
             
             sys.path.append(Profile_code[hostname])
-            import Profile_Vertical_Fletcher
-            pressavg,fNH3avg=Profile_Vertical_Fletcher.Profile_Vertical_Fletcher(plot=False)
+            import Profile_Vertical_Fletcher as PVF
+            pressavg,fNH3avg,fNH3std=PVF.Profile_Vertical_Fletcher(plot=False)
             axsscatter.plot(np.array(fNH3avg),np.array(pressavg)*1000.,label='Fletcher++ 2020')
+            axsscatter.fill_betweenx(pressavg*1000,fNH3avg-fNH3std,fNH3avg+fNH3std,alpha=0.1)
+            
+            tmp=np.array(PVF.Giles2017(dataset="4b"))
+            axsscatter.plot(tmp[:,0]*1e6,tmp[:,1]*1000,label=r"Giles++ 2017, 5$^\circ$N")
+            tmp=np.array(PVF.Giles2017(dataset="4d"))
+            axsscatter.plot(tmp[:,0]*1e6,tmp[:,1]*1000,label=r"Giles++ 2017, 8$^\circ$N")
+            axsscatter.legend(fontsize=7,ncols=3,labelcolor='mfc')
+
+
             print("COMPARE COMPARE COMPARE COMPARE COMPARE ")
             print(np.array(fNH3avg),np.array(pressavg)*1000.)
             #return
@@ -472,7 +481,9 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                            "Context Image (673/502/395nm)",
                            "Color Index (CI)"],
                 cbar_rev=False,cbar_title="Cloud-top Pressure (mb)",
-                axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
+                axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),
+                smoothcont=smoothcont,dataversion=dataversion,
+                fNH3factor=1.0)
             fnout=mfn.make_L2_L3_map_png_filenames(obskey,fnNH3,'L3',LonSys,CoLatLims,LonLimsEast,
                                          coef=0.0,FiveMicron=False,
                                          dataversion=dataversion,param_name='AOI_vs_CI')
@@ -503,7 +514,9 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             Level='L3',maptitles=["Normalized Residuals (fNH3 - PCld)",
                        "Context Image (673/502/395nm)",
                        "5x5 deg Box Correlation"],cbar_rev=False,cbar_title="Cloud-top Pressure (mb)",
-            axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),smoothcont=smoothcont,dataversion=dataversion)
+            axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),
+            smoothcont=smoothcont,dataversion=dataversion,
+            fNH3factor=fNH3factor)
         fnout=mfn.make_L2_L3_map_png_filenames(obskey,fnNH3,'L3',LonSys,CoLatLims,LonLimsEast,
                                      coef=0.0,FiveMicron=False,
                                      dataversion=dataversion,param_name='Resid_vs_Correl')

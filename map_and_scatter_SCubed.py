@@ -5,7 +5,8 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
                     maptitles=['','',''],
                     cont=False,FiveMicron=False,
                     cbar_rev=False,swap_xy=False,axis_inv=False,cbar_title="Test",
-                    suptitle="Test",ROI=False,smoothcont=0,dataversion=2):
+                    suptitle="Test",ROI=False,smoothcont=0,dataversion=2,
+                    fNH3factor=1.0):
     """
     PURPOSE:    Makes a pair of plots, the left one is a patch map of one data
                 set overlayed by another patch map data set. The right plot is
@@ -187,9 +188,9 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
     # Plot scatter of all points
     ###########################################################################
     if dataversion==2:
-        axs1.scatter(patchx,patchy,marker="o",s=3.0,color='grey',alpha=0.2,label='All')
+        axs1.scatter(patchx*fNH3factor,patchy,marker="o",s=3.0,color='grey',alpha=0.2,label='All')
     elif dataversion=='H':
-        axs1.scatter(patchx,patchy,marker=".",s=2,color='grey',linewidths=0,alpha=0.2,label='All')
+        axs1.scatter(patchx*fNH3factor,patchy,marker=".",s=2,color='grey',linewidths=0,alpha=0.2,label='All')
     
     #print(patchx.shape,patchy.shape)
     ###########################################################################
@@ -201,13 +202,15 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
             ROIout,Mahalanobis_out=prs.plot_roi_scatter(obskey,dateobs,ROI_ID,patchx,patchy,PlotCM,
                      LatLims,LonLimsEast,axs1,xlow,xhigh,ylow,yhigh,FiveMicron,
                      axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
-                     dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
+                     dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0],
+                     fNH3factor=fNH3factor)
         if not swap_xy:    
             print("Calling ROI",maptitles[2],maptitles[0])
             ROIout,Mahalanobis_out=prs.plot_roi_scatter(obskey,dateobs,ROI_ID,patchy,patchx,PlotCM,
                      LatLims,LonLimsEast,axs1,ylow,yhigh,xlow,xhigh,FiveMicron,
                      axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
-                     dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
+                     dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0],
+                     fNH3factor=fNH3factor)
 
         ROIcolors={"Hot Spot":'r',
              "Gyre":'g',

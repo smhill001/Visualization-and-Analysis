@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-def HST_Analysis_Script(obskeyHST,LonSys,ROI_ID=False,HST=True,SCT=False):
+def HST_Analysis_Script(obskeyHST,LonSys,HST=True,SCT=False,ROI=False,ROI_ID='',
+                        compare=False,segment=False,fNH3factor=1.0):
     
     import sys
     import socket
@@ -11,10 +12,6 @@ def HST_Analysis_Script(obskeyHST,LonSys,ROI_ID=False,HST=True,SCT=False):
     #sys.path.append('C:/Astronomy/Projects/SAS 2021 Ammonia/Visualization-and-Analysis/')
     #sys.path.append()
     import L3_Jup_Map_Plot_V2 as L3MP
-
-    ROI=False
-    segment=False
-    compare=False
 
     collection=Study_Maps[obskeyHST]['collection']
     plotoptions=Study_Maps[obskeyHST][LonSys]['plotoptions']
@@ -34,11 +31,11 @@ def HST_Analysis_Script(obskeyHST,LonSys,ROI_ID=False,HST=True,SCT=False):
                                 CoLatLims=CoLatLims,LonRng=LonRng,CMpref=CMpref,LonSys=LonSys, 
                                 subproj='SCubed 2025/'+obskeyHST,plotoptions=plotoptions,
                                 dataversion='H',smoothcont=5,segment=segment,ROI_ID=ROI_ID,
-                                ROI=ROI,compare=compare)
+                                ROI=ROI,compare=compare,fNH3factor=fNH3factor)
 
     if SCT:
         L3MP.L3_Jup_Map_Plot_V2(obskey=collection, 
                                 CoLatLims=CoLatLims,LonRng=LonRng,CMpref=CMpref,LonSys=LonSys, 
                                 subproj='SCubed 2025/'+obskeyHST,plotoptions=plotoptions,
                                 dataversion=2,smoothcont=0,segment=segment,ROI_ID=ROI_ID,
-                                ROI=ROI,compare=compare)
+                                ROI=ROI,compare=compare,fNH3factor=fNH3factor)
