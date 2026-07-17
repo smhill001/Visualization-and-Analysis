@@ -209,7 +209,11 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
 
     """
     import numpy as np
-    
+    print("plot_roi_scatter plot_roi_scatter ")
+    print("DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG ")
+    print("fNH3factor= ",fNH3factor)
+    print("END END END END END END END END")
+
     ###########################################################################
     # LOOP OVER ROIS AND PLOT SCATTER IN APPROPRIATE COLOR
     ###########################################################################
@@ -257,7 +261,7 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
         else:
             axscor.scatter(subpatch2,subpatch1,marker="o",s=3.0,color=ROIcolors[R],alpha=0.8,label=R)
             
-        ROIout=statistics_helper(ROIout,obskey,R,subpatch1,subpatch2,ROIcolors[R],axscor,alpha=1.0)
+        ROIout=statistics_helper(ROIout,obskey,R,subpatch1,subpatch2*fNH3factor,ROIcolors[R],axscor,alpha=1.0)
         #print(counter, np.array(ROIout[obskey]['cov_matrix'])[counter,:,:])
 
         #plot_Mahal_ellipse(np.array(ROIout[obskey]['cov_matrix'])[counter,:,:],

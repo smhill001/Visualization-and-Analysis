@@ -142,8 +142,8 @@ def map_and_context(obskey,mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,
     RGB_patch=MP.make_patch(RGB,LatLims,LonLimsEast,PlotCM,LonRng)
     
     RGB4Display=np.power(np.array(RGB_patch).astype(float),gamma)
-    RGB4Display=RGB4Display/RGB4Display.max()
-    RGBdata_patch,RGBvn,RGBvx,RGBtx,RGBcbar=PP.plot_patch(RGB4Display,LatLims,LonLimsEast,
+    #RGB4Display=RGB4Display/RGB4Display.max()
+    RGBdata_patch,RGBvn,RGBvx,RGBtx,RGBcbar=PP.plot_patch(RGB_patch,LatLims,LonLimsEast,
                                      PlotCM,LonRng,ct,axs1[1],'%3.2f',
                                      n=6,vn=low,vx=high,
                                      #cbar_title=cbar_title,cbar_reverse=cbar_rev)

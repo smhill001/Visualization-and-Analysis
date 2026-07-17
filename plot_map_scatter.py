@@ -2,7 +2,7 @@ import plot_roi_scatter as prs
 
 def plot_map_scatter(obskey,dateobs,patch1,patch2,Real_CM2,LatLims,axscor,PCldlow,PCldhigh,
                  fNH3low,fNH3high,FiveMicron,axis_inv=False,Bands=False,
-                 dataversion=2,xaxistitle='',yaxistitle=''):
+                 dataversion=2,xaxistitle='',yaxistitle='',fNH3factor=1.0):
     """
     PURPOSE:    Takes two map patches and makes a scatter plot
     CALLS:      n/a
@@ -77,7 +77,7 @@ def plot_map_scatter(obskey,dateobs,patch1,patch2,Real_CM2,LatLims,axscor,PCldlo
             'mean2':[],'stdv2':[],'slope':[],'intercept':[],
             'r_value':[],'p_value':[],'std_err':[],'cov_matrix':[]}}
     
-    ROIout=prs.statistics_helper(ROIout,obskey,'All',patch1,patch2,'grey',axscor,alpha=0.2)
+    ROIout=prs.statistics_helper(ROIout,obskey,'All',patch1,patch2*fNH3factor,'grey',axscor,alpha=0.2)
 
     counter=0
     for key in BZ.keys():
@@ -102,7 +102,7 @@ def plot_map_scatter(obskey,dateobs,patch1,patch2,Real_CM2,LatLims,axscor,PCldlo
             ROIcolor='C'+str(counter)
             print(patch2.shape,patch1.shape)
             subpatch1=patch1[BZind[key][1]*scale:BZind[key][0]*scale,:]
-            subpatch2=patch2[BZind[key][1]*scale:BZind[key][0]*scale,:]
+            subpatch2=patch2[BZind[key][1]*scale:BZind[key][0]*scale,:]*fNH3factor
             if dataversion=='H':
                 axscor.scatter(subpatch2,subpatch1,
                                marker=".",s=0.1,linewidths=0,

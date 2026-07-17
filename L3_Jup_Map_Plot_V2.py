@@ -270,7 +270,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                        suptitle="Ammonia Mole Fraction",
                                                        cbar_title="Ammonia Mole Fraction (ppm)",
                                                        ROI=ROI,smoothcont=smoothcont,
-                                                       dataversion=dataversion)
+                                                       dataversion=dataversion,noplot=False)
     
 
     ###########################################################################
@@ -290,7 +290,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                         cbar_rev=True,
                                                         cbar_title="Cloud Top Pressure (mb)",
                                                         ROI=ROI,smoothcont=smoothcont,dataversion=dataversion)
-
 
     ###########################################################################
     ## Just RGB and Cloud Pressure
@@ -357,7 +356,6 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     ## Compute Band or ROI Scatter Plot (PCloud vs fNH3)
     ###########################################################################
     if "scatter" in plotoptions:
-        print("#########################", obskey)
         ROIout,Mahalanobis_out,figscatter,axsscatter,axsmaps=masc.map_and_scatter_SCubed(obskey,ROI_ID,fNH3_patch_mb,PCld_patch,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
             CoLatLims,NH3LonLims,LonRng,PCldPlotCM,
             amfdata,coef[0],tx_fNH3,tx_PCld,fNH3low,fNH3high,PCldlow,PCldhigh,
@@ -370,7 +368,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             smoothcont=smoothcont,dataversion=dataversion,fNH3factor=fNH3factor)
         print("############### ROIout= ",ROIout)
         print()
-
+        
         # Open the CSV file for writing
         print("###############################")
         print("###############################")
@@ -410,6 +408,44 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             print("COMPARE COMPARE COMPARE COMPARE COMPARE ")
             print(np.array(fNH3avg),np.array(pressavg)*1000.)
             #return
+            
+        #######################################################################
+        # BEGIN: EXPERIMENTAL CODE TO OVERPLOT JUNO'S GROUND TRACK
+        # CURRENTLY HARDCODED FOR A GIVEN EPOCH
+        #######################################################################
+        Juno=False
+        if Juno:
+            import planetmapper as pm
+            import spiceypy as spice
+            import convert_system3_to_I_II_spice as convert
+            Juno_Lat=[]
+            Juno_Lon1=[]
+            times = np.arange(
+                np.datetime64('2025-10-17T14:25:00'),
+                np.datetime64('2025-10-17T14:48:00'),
+                np.timedelta64(1, 'm')
+            )
+            time_strings = np.datetime_as_string(times)
+            for time in time_strings:
+                bodyJUNO = pm.BodyXY('Jupiter', time, sz=500,observer='JUNO')
+                Juno_Lat.append(bodyJUNO.subpoint_lat)
+                D=convert.convert_system3_to_I_II_spice(time, bodyJUNO.subpoint_lon)
+                Juno_Lon1.append(D["System I"])
+            
+            print("############################")
+            print(Juno_Lon1,Juno_Lat)
+            print(np.array(Juno_Lon1),np.array(Juno_Lat))
+            axsmaps[0].scatter(np.array(Juno_Lon1),np.array(Juno_Lat),marker='+',c='k',s=0.5)
+            axsmaps[1].scatter(np.array(Juno_Lon1),np.array(Juno_Lat),marker='+',c='k',s=0.5)
+            axsmaps[2].scatter(np.array(Juno_Lon1),np.array(Juno_Lat),marker='+',c='k',s=0.5)
+        #######################################################################
+        # END: EXPERIMENTAL CODE TO OVERPLOT JUNO'S GROUND TRACK
+        # CURRENTLY HARDCODED FOR A GIVEN EPOCH
+        #######################################################################
+            
+        #######################################################################
+        # BEGIN: SEGMENTATION CODE WITH TAILORING FOR HST AND SCT
+        #######################################################################        
         if segment:
             if dataversion=='H':
                 NH3thresh=170
@@ -469,8 +505,10 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                     plot_labels=False, contour_color='black')
             
         figscatter.savefig(pathmapplots+fnout.replace('.png','_scatter.png'),dpi=300)
-
-
+        
+        #######################################################################
+        # BEGIN: SPECIAL SCATTER/ROI HANDLING FOR HSI FOR AOI AND CI
+        #######################################################################
         if dataversion=='H':
             ctbls=['Spectral','Greys_r']
             ROIout,Mahalanobis_out,figscatter,axsscatter,axsmaps=masc.map_and_scatter_SCubed(obskey,ROI_ID,CI_patch,AOI_patch,AOIdata,RGB4Display,AOIhdr['DATE-OBS'],LonSys,

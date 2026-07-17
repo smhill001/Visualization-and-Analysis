@@ -108,7 +108,8 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
         RGBobjects={'NIR':[],'GRN':[],'BLU':[]}
     elif dataversion=='H':
         sciobjects={'PCld':[],'fNH3':[],'CI':[],'AOI':[]}
-        RGBobjects={'673 Norm':[],'502 Norm':[],'395 Norm':[]}
+        #RGBobjects={'673 Norm':[],'502 Norm':[],'395 Norm':[]}
+        RGBobjects={'673 Refl':[],'502 Refl':[],'395 Refl':[]}
 
     print("############## filesSci= ",filesSci)
 
@@ -139,9 +140,12 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
     if dataversion==2:
         IGBdatar=np.dstack((RGBobjects['NIR']['datar'],RGBobjects['GRN']['datar'],RGBobjects['BLU']['datar']))
     elif dataversion=='H':
-        IGBdatar=np.dstack((RGBobjects['673 Norm']['datar'],
-                            RGBobjects['502 Norm']['datar'],
-                            RGBobjects['395 Norm']['datar']))
+        #IGBdatar=np.dstack((RGBobjects['673 Norm']['datar'],
+        #                    RGBobjects['502 Norm']['datar'],
+        #                    RGBobjects['395 Norm']['datar']))
+        IGBdatar=np.dstack((RGBobjects['673 Refl']['datar'],
+                            RGBobjects['502 Refl']['datar'],
+                            RGBobjects['395 Refl']['datar']))
     IGBdatarx=np.nan_to_num(IGBdatar, nan=0.0, posinf=1.0, neginf=0.0)
 
     
@@ -154,8 +158,8 @@ def read_fits_map_L3_V2(obskey="20251016UTa",imagetype="Map",Level="L3",
                sciobjects['fNH3']['hdr'],sciobjects['fNH3']['datar'],
                sciobjects['CI']['hdr'],sciobjects['CI']['datar'],
                sciobjects['AOI']['hdr'],sciobjects['AOI']['datar'],
-               IGBdatarx/np.max(IGBdatarx),RGBobjects['502 Norm']['hdr']['CM'+LonSys],
-               RGBobjects['502 Norm']['hdr']['DATE-OBS'])
+               IGBdatarx,RGBobjects['502 Refl']['hdr']['CM'+LonSys],
+               RGBobjects['502 Refl']['hdr']['DATE-OBS'])
 
 def read_fits_map_L3_V1(obskey="20231026UTa",imagetype="Map",Level="L3",
                         target="Jupiter",LonSys='3',

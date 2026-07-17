@@ -187,6 +187,11 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
     ###########################################################################
     # Plot scatter of all points
     ###########################################################################
+    print("map_and_scatter_SCubed map_and_scatter_SCubed")
+    print("DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG ")
+    print("fNH3factor= ",fNH3factor)
+    print("END END END END END END END END")
+
     if dataversion==2:
         axs1.scatter(patchx*fNH3factor,patchy,marker="o",s=3.0,color='grey',alpha=0.2,label='All')
     elif dataversion=='H':
@@ -231,12 +236,14 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
         if swap_xy:
             ROIout,Mahalanobis_out,BZ=pms.plot_map_scatter(patchx,patchy,PlotCM,
                      LatLims,axs1,xlow,xhigh,ylow,yhigh,FiveMicron,axis_inv=axis_inv,
-                     dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
+                     dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0],
+                     fNH3factor=fNH3factor)
             print("Case 1")
         if not swap_xy:     
             ROIout,Mahalanobis_out,BZ=pms.plot_map_scatter(obskey,dateobs,patchy,patchx,PlotCM,
                      LatLims,axs1,ylow,yhigh,xlow,xhigh,FiveMicron,axis_inv=axis_inv,
-                     dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0])
+                     dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0],
+                     fNH3factor=fNH3factor)
             print("Case 2")
     
         BZind=copy.deepcopy(BZ)   

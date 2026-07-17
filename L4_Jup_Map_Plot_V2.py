@@ -163,6 +163,7 @@ def figsize_and_aspect(lats,LonLims):
     import time
     time.sleep(5)
     aspect_ratio_map = {
+                        1/2.:  [2.5, 6.0],
                         2/3.:  [2.5, 6.0],
                         3/4.:  [2.5, 6.0],
                         1:     [3.0, 6.0],
@@ -178,6 +179,7 @@ def figsize_and_aspect(lats,LonLims):
     
     #Aspect Ratio Customization
     adjust_params = {
+    1/2.:  {'left': 0.21,  'bottom': 0.07, 'right': 0.79,  'top': 0.88,  'wspace': 0.0,  'hspace': 0.2},
     2/3.:  {'left': 0.21,  'bottom': 0.07, 'right': 0.79,  'top': 0.88,  'wspace': 0.0,  'hspace': 0.2},
     3/4.:  {'left': 0.21,  'bottom': 0.07, 'right': 0.79,  'top': 0.88,  'wspace': 0.0,  'hspace': 0.2},
     1:     {'left': 0.21,  'bottom': 0.07, 'right': 0.79,  'top': 0.88,  'wspace': 0.0,  'hspace': 0.2},
