@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 def HST_Analysis_Script(obskeyHST,LonSys,HST=True,SCT=False,ROI=False,ROI_ID='',
-                        compare=False,segment=False,fNH3factor=1.0):
+                        compare=False,segment=False,fNH3factor=1.0,GMM_clusters=0):
     
     import sys
     import socket
@@ -31,7 +31,7 @@ def HST_Analysis_Script(obskeyHST,LonSys,HST=True,SCT=False,ROI=False,ROI_ID='',
                                 CoLatLims=CoLatLims,LonRng=LonRng,CMpref=CMpref,LonSys=LonSys, 
                                 subproj='SCubed 2025/'+obskeyHST,plotoptions=plotoptions,
                                 dataversion='H',smoothcont=5,segment=segment,ROI_ID=ROI_ID,
-                                ROI=ROI,compare=compare,fNH3factor=fNH3factor)
+                                ROI=ROI,compare=compare,fNH3factor=fNH3factor,GMM_clusters=GMM_clusters)
 
     if SCT:
         L3MP.L3_Jup_Map_Plot_V2(obskey=collection, 

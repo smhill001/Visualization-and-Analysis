@@ -6,7 +6,7 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
                     cont=False,FiveMicron=False,
                     cbar_rev=False,swap_xy=False,axis_inv=False,cbar_title="Test",
                     suptitle="Test",ROI=False,smoothcont=0,dataversion=2,
-                    fNH3factor=1.0):
+                    fNH3factor=1.0,GMM_clusters=0):
     """
     PURPOSE:    Makes a pair of plots, the left one is a patch map of one data
                 set overlayed by another patch map data set. The right plot is
@@ -208,14 +208,14 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
                      LatLims,LonLimsEast,axs1,xlow,xhigh,ylow,yhigh,FiveMicron,
                      axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
                      dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0],
-                     fNH3factor=fNH3factor)
+                     fNH3factor=fNH3factor,GMM_clusters=GMM_clusters)
         if not swap_xy:    
             print("Calling ROI",maptitles[2],maptitles[0])
             ROIout,Mahalanobis_out=prs.plot_roi_scatter(obskey,dateobs,ROI_ID,patchy,patchx,PlotCM,
                      LatLims,LonLimsEast,axs1,ylow,yhigh,xlow,xhigh,FiveMicron,
                      axis_inv=axis_inv,ROI=ROI,amfpatch=amfdata,
                      dataversion=dataversion,xaxistitle=maptitles[2],yaxistitle=maptitles[0],
-                     fNH3factor=fNH3factor)
+                     fNH3factor=fNH3factor,GMM_clusters=GMM_clusters)
 
         ROIcolors={"Hot Spot":'r',
              "Gyre":'g',

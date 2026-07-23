@@ -3,6 +3,57 @@ from scipy import stats
 from matplotlib.patches import Ellipse
 import matplotlib.lines as mlines
 
+def GMM_overplot(axscor,obskey,ROI_ID,xaxistitle,dataversion='H',fNH3factor=1.0,total_clusters=6):
+    import json
+    from matplotlib.colors import ListedColormap 
+
+    # Using a context manager ensures the file closes automatically
+    #GMM_file='C:/Astronomy/Projects/SAS 2021 Ammonia/Visualization-and-Analysis/mahalanobis_clusters_with_covariances.json'
+    GMM_file='C:/Astronomy/Projects/SAS 2021 Ammonia/Visualization-and-Analysis/new_mahalanobis_clusters.json'
+    with open(GMM_file, "r", encoding="utf-8") as f:
+        GMM_Mahalanobis = json.load(f)
+    colors =[(1, 0.639, 0.639), (0.647, 1, 0.639), (0.639, 0.894, 1), 
+             (1, 0.996, 0.639), (1, 0.82, 0.639), (1, 0.639, 0.839), 
+             (0.937, 0.639, 1), (0.678, 0.678, 0.678)]
+    cmap = ListedColormap(colors[:9])
+
+    darker_colors = list(map(lambda c: (c[0] - 0.2, c[1] - 0.2, c[2] - 0.2), cmap.colors))
+
+
+    if 'Ammonia' in xaxistitle:
+        plottype='NH3_PCld'
+        param1,param2='PCld','NH3'
+    elif 'Color' in xaxistitle:
+        plottype='AOI_CI'
+        param1,param2='AOI','CI'
+    else:
+        plottype=False
+    if plottype and dataversion=='H':
+        print("##############################")
+        print("obskey+'-'+ROI_ID obskey+'-'+ROI_ID obskey+'-'+ROI_ID")
+        print(obskey+'-'+ROI_ID in GMM_Mahalanobis)
+        if obskey+'-'+ROI_ID in GMM_Mahalanobis:
+            subdict=GMM_Mahalanobis[obskey+'-'+ROI_ID][plottype][str(total_clusters)]
+            for cluster_number in range(0,int(total_clusters)):
+                mean1=float(subdict[param1][str(cluster_number+1)]['mean'])
+                mean2=float(subdict[param2][str(cluster_number+1)]['mean'])*fNH3factor
+                print("GMM Data*************************************************")
+                print(mean1,mean2)
+                Test_Mahal_GMM_covariance=np.array(json.loads(subdict['covariances']))[cluster_number,:,:]
+                print(Test_Mahal_GMM_covariance)
+                print("*********************************************************")
+                if plottype=='NH3_PCld':
+                    plot_Mahal_ellipse(np.flip(Test_Mahal_GMM_covariance),mean1,mean2,
+                    #                   axscor,'C'+str(cluster_number),alpha=0.8)
+                                       axscor,darker_colors[cluster_number],alpha=0.8)
+                elif plottype=='AOI_CI':
+                    plot_Mahal_ellipse(Test_Mahal_GMM_covariance,mean1,mean2,
+                    #                   axscor,'C'+str(cluster_number),alpha=0.8)
+                                       axscor,darker_colors[cluster_number],alpha=0.8)
+                #axscor.scatter([],[],label='GMM '+str(cluster_number+1))
+                axscor.scatter([],[],label='GMM '+str(cluster_number+1),c=darker_colors[cluster_number])
+
+
 def pooled_covariance_ROIs(ROIout, obskey):
 
     covs = ROIout[obskey]['cov_matrix'][1:]   # exclude parent
@@ -141,7 +192,7 @@ def plot_Mahal_ellipse(cov_matrixi,mean_patch1,mean_patch2,axscor,clr,alpha=0.8)
     #axscor.ellipse_proxy = mlines.Line2D(
     #    [], [], color=clr, linestyle="--", linewidth=1.5, label="95% Confidence")   
     
-def statistics_helper(ROIout,obskey,R,patch1,patch2,clr,axscor,alpha=1.0):
+def statistics_helper(ROIout,obskey,R,patch1,patch2,clr,axscor,alpha=1.0,plot_ellipse=True):
     mean_patch1,mean_patch2,stdv_patch1,stdv_patch2 = np.mean(patch1), np.mean(patch2),np.std(patch1),np.std(patch2)
     ROIout[obskey]['mean1'].append(mean_patch1)
     ROIout[obskey]['mean2'].append(mean_patch2)
@@ -160,7 +211,8 @@ def statistics_helper(ROIout,obskey,R,patch1,patch2,clr,axscor,alpha=1.0):
     cov_matrixi = np.cov([patch1.ravel(), patch2.ravel()],rowvar=True)
     ROIout[obskey]['cov_matrix'].append(cov_matrixi)
     #print("cov_matrixi",cov_matrixi)
-    plot_Mahal_ellipse(cov_matrixi,mean_patch1,mean_patch2,axscor,clr,alpha=0.8)
+    if plot_ellipse:
+        plot_Mahal_ellipse(cov_matrixi,mean_patch1,mean_patch2,axscor,clr,alpha=0.8)
     
     return ROIout
 
@@ -168,7 +220,8 @@ def statistics_helper(ROIout,obskey,R,patch1,patch2,clr,axscor,alpha=1.0):
     
 def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLims,axscor,PCldlow,PCldhigh,
                  fNH3low,fNH3high,FiveMicron,axis_inv=False,ROI=False,amfpatch=False,
-                 dataversion=2,xaxistitle='',yaxistitle='',fNH3factor=1.0):
+                 dataversion=2,xaxistitle='',yaxistitle='',fNH3factor=1.0,
+                 plot_ellipse=True,GMM_clusters=0):
     """
     PURPOSE:    Takes two map patches and makes a scatter plot
     CALLS:      n/a
@@ -231,7 +284,7 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
             'r_value':[],'p_value':[],'std_err':[],'cov_matrix':[]}}
 
     ROIout=statistics_helper(ROIout,obskey,'All',patch1,patch2*fNH3factor,
-                             'grey',axscor,alpha=0.2)
+                             'grey',axscor,alpha=0.2,plot_ellipse=plot_ellipse)
     #print(np.array(ROIout[obskey]['cov_matrix'])[0,:,:])
     #plot_Mahal_ellipse(np.array(ROIout[obskey]['cov_matrix'])[0,:,:],
     #                   ROIout[obskey]['mean1'],
@@ -261,74 +314,21 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
         else:
             axscor.scatter(subpatch2,subpatch1,marker="o",s=3.0,color=ROIcolors[R],alpha=0.8,label=R)
             
-        ROIout=statistics_helper(ROIout,obskey,R,subpatch1,subpatch2*fNH3factor,ROIcolors[R],axscor,alpha=1.0)
-        #print(counter, np.array(ROIout[obskey]['cov_matrix'])[counter,:,:])
-
-        #plot_Mahal_ellipse(np.array(ROIout[obskey]['cov_matrix'])[counter,:,:],
-        #                   ROIout[obskey]['mean1'][counter],
-        #                   ROIout[obskey]['mean2'][counter],axscor,'grey',alpha=0.8)
-        #counter+=1
+        ROIout=statistics_helper(ROIout,obskey,R,subpatch1,subpatch2,
+                                 ROIcolors[R],axscor,alpha=1.0,
+                                 plot_ellipse=plot_ellipse)
 
     parent_results=mahalanobis_to_parent(ROIout, obskey)
     Mahal_pairwise=pairwise_mahalanobis(ROIout, obskey)
     Mahal_pairwise_roi=roi_pairwise_mahalanobis(ROIout, obskey)
+    Mahalanobis_out={'parent_results':parent_results,
+                     'pairwise':Mahal_pairwise,
+                     'pairwise_roi':Mahal_pairwise_roi}   
+    
+    if 3<GMM_clusters<7:
+        GMM_overplot(axscor,obskey,ROI_ID,xaxistitle,dataversion='H',
+                     fNH3factor=fNH3factor,total_clusters=GMM_clusters)
 
-    import json
-    # Using a context manager ensures the file closes automatically
-    GMM_file='C:/Astronomy/Projects/SAS 2021 Ammonia/Visualization-and-Analysis/mahalanobis_clusters_with_covariances.json'
-    with open(GMM_file, "r", encoding="utf-8") as f:
-        GMM_Mahalanobis = json.load(f)
-    
-    total_clusters=6 #needs to be an input and so does the ROI
-    if 'Ammonia' in xaxistitle:
-        plottype='NH3_PCld'
-        param1,param2='PCld','NH3'
-    elif 'Color' in xaxistitle:
-        plottype='AOI_CI'
-        param1,param2='AOI','CI'
-    else:
-        plottype=False
-    if plottype and dataversion=='H':
-        print("##############################")
-        print("obskey+'-'+ROI_ID obskey+'-'+ROI_ID obskey+'-'+ROI_ID")
-        print(obskey+'-'+ROI_ID in GMM_Mahalanobis)
-        if obskey+'-'+ROI_ID in GMM_Mahalanobis:
-            subdict=GMM_Mahalanobis[obskey+'-'+ROI_ID][plottype][str(total_clusters)]
-            for cluster_number in range(0,int(total_clusters)):
-                mean1=float(subdict[param1][str(cluster_number+1)]['mean'])
-                mean2=float(subdict[param2][str(cluster_number+1)]['mean'])*fNH3factor
-                print("GMM Data*************************************************")
-                print(mean1,mean2)
-                Test_Mahal_GMM_covariance=np.array(json.loads(subdict['covariances']))[cluster_number,:,:]
-                print(Test_Mahal_GMM_covariance)
-                print("*********************************************************")
-                if plottype=='NH3_PCld':
-                    plot_Mahal_ellipse(np.flip(Test_Mahal_GMM_covariance),mean1,mean2,
-                                       axscor,'C'+str(cluster_number),alpha=0.8)
-                elif plottype=='AOI_CI':
-                    plot_Mahal_ellipse(Test_Mahal_GMM_covariance,mean1,mean2,
-                                       axscor,'C'+str(cluster_number),alpha=0.8)
-                axscor.scatter([],[],label='GMM '+str(cluster_number+1))
-        """
-    print()
-    print("############## Mahalanobis to parent")
-    for roi, vals in parent_results.items():
-        print(
-            roi,
-            vals['D2'],
-            vals['D']
-        )
-    print("############## Mahalanobis pairwise, pooled")
-    print()
-    
-    print(Mahal_pairwise['labels'],Mahal_pairwise['D'])
-    print()
-    print("############## Mahalanobis pairwise, pooled 4")
-    print()
-    print(Mahal_pairwise_roi['labels'],Mahal_pairwise_roi['D'])
-    print("##############")
-    print()
-    """
     axscor.grid(linewidth=0.2)
     axscor.set_ylim(PCldlow,PCldhigh)
     axscor.set_xlim(fNH3low,fNH3high)
@@ -343,9 +343,6 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
     else:
         axscor.set_xlabel("Ammonia Mole Fraction (ppm)",fontsize=10)
     """
-    Mahalanobis_out={'parent_results':parent_results,
-                     'pairwise':Mahal_pairwise,
-                     'pairwise_roi':Mahal_pairwise_roi}   
     # 2. Grab what the automatic routine detected (scatter, plots, etc.)
     #handles, labels = axscor.get_legend_handles_labels()
     

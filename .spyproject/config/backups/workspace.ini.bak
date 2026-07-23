@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['..\\Jupiter_NH3_Analysis_P3\\Maps\\PlanetMapper_Spice_Furnish.py', 'HST_Analysis_Script.py', 'L3_Jup_Map_Plot_V2.py', 'config_VA.py', 'HST_Study_Maps.py', '..\\Jupiter_NH3_Analysis_P3\\HST\\read_HST_GO.py', 'map_and_context.py', 'read_fits_V2.py']
+recent_files = ['..\\Jupiter_NH3_Analysis_P3\\Maps\\PlanetMapper_Spice_Furnish.py', 'HST_Analysis_Script.py', 'L3_Jup_Map_Plot_V2.py', 'config_VA.py', 'HST_Study_Maps.py', '..\\Jupiter_NH3_Analysis_P3\\HST\\read_HST_GO.py', 'read_fits_V2.py', 'plot_roi_scatter.py', '..\\Jupiter_NH3_Analysis_P3\\Profiles\\code\\plot_TEXES_Groups_P3.py', '..\\Jupiter_NH3_Analysis_P3\\Profiles\\code\\Profile_Vertical_Fletcher.py']
 
 [main]
 version = 0.2.0

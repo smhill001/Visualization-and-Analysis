@@ -95,12 +95,12 @@ def map_and_context(obskey,mapdata,dateobs,bunit,filename,RGB,RGBtime,LonSys,
 
     for ix in range(0,1):
         axs1[ix].grid(linewidth=0.2)
-        axs1[ix].ylim=[-45.,45.]
+        axs1[ix].ylim=[-90.,90.]
         axs1[ix].xlim=[360-LonLimsEast[0],360-LonLimsEast[1]]
         axs1[ix].set_xticks(np.linspace(450,0,31), minor=False)
         xticklabels=np.array(np.mod(np.linspace(450,0,31),360))
         axs1[ix].set_xticklabels(xticklabels.astype(int))
-        axs1[ix].set_yticks(np.linspace(-45,45,7), minor=False)
+        axs1[ix].set_yticks(np.linspace(-90,90,13), minor=False)
         axs1[ix].tick_params(axis='both', which='major', labelsize=9)
 
         axs1[ix].set_adjustable('box') 

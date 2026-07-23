@@ -1,4 +1,4 @@
-def flatten_patch(patch,limit=False):
+def flatten_patch(patch,limit=True):
     """
     Empirical longitudinal flattening of a map patch using a 2nd order
     polynomial fit
