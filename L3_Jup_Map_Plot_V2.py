@@ -8,6 +8,11 @@ import csv
 hostname = socket.gethostname()
 from config_VA import Host_path, Profile_code
 
+import sys
+sys.path.append("/mnt/data/git_repos/Jupiter_NH3_Analysis_P3/Profiles/code/")
+import Profile_Vertical_Fletcher
+
+
 
 def write_Mahal_out(Mahalanobis_out,pathmapplots,fnout):
     with open(pathmapplots+fnout.replace('.png','_Mahal2Parent.csv'), "w", newline="", encoding="utf-8") as f:
@@ -164,7 +169,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             AOIhigh=0.8
             CIlow=0.3
             CIhigh=0.9
-         
+
 
     print("############### len(obskey)= ",len(obskey))
     if len(obskey)==11:
@@ -280,7 +285,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                        suptitle="Ammonia Mole Fraction",
                                                        cbar_title="Ammonia Mole Fraction (ppm)",
                                                        ROI=ROI,smoothcont=smoothcont,
-                                                       dataversion=dataversion,noplot=False)
+                                                       dataversion=dataversion,noplot=True)
     
 
     ###########################################################################
@@ -300,7 +305,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                         cbar_rev=True,
                                                         cbar_title="Cloud Top Pressure (mb)",
                                                         ROI=ROI,smoothcont=smoothcont,
-                                                        dataversion=dataversion,noplot=False)
+                                                        dataversion=dataversion,noplot=True)
 
     ###########################################################################
     ## Just RGB and Cloud Pressure
@@ -396,19 +401,13 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         # COMPARISON DATA OVERPLOT
         #######################################################################
         if compare:
-            #xerr=[[50],[50]]
-            #yerr=[[300],[4000]]
-            #axsscatter.set_xlim(10,1000)
-            #axsscatter.set_ylim(10000,100)
-            #axsscatter.set_xscale('log') 
-            #axsscatter.set_yscale('log') 
+            """            
             #Bjoraker++ 2018 (deep values only, not saturation level above 700mb)
             axsscatter.plot([200,200],[700,5000],linewidth=1.0,
                             label="Bjoraker++ 2018")
             axsscatter.fill_betweenx([700,5000],[150,150],[250,250],alpha=0.1)
             
             sys.path.append(Profile_code[hostname])
-            import Profile_Vertical_Fletcher as PVF
             pressavg,fNH3avg,fNH3std=PVF.Profile_Vertical_Fletcher(plot=False)
             axsscatter.plot(np.array(fNH3avg),np.array(pressavg)*1000.,
                             linewidth=1.0,label='Fletcher++ 2020')
@@ -417,22 +416,21 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             tmp=np.array(PVF.Giles2017(dataset="4b"))
             axsscatter.plot(tmp[:,0]*1e6,tmp[:,1]*1000,linewidth=1.0,
                             label=r"Giles++ 2017, 5$^\circ$N")
+            axsscatter.fill_betweenx(tmp[:,1]*1000,tmp[:,2]*1e6,tmp[:,3]*1e6, alpha=0.1)
             tmp=np.array(PVF.Giles2017(dataset="4d"))
             axsscatter.plot(tmp[:,0]*1e6,tmp[:,1]*1000,linewidth=1.0,
                             label=r"Giles++ 2017, 8$^\circ$N")
-
-            header_names,xtmp,ytmp=PVF.Juno_MWR()
+            axsscatter.fill_betweenx(tmp[:,1]*1000,tmp[:,2]*1e6,tmp[:,3]*1e6, alpha=0.1)
+            """
+            header_names,xtmp,ytmp=Profile_Vertical_Fletcher.Juno_MWR()
             header_PC_lats=[float(s.replace('PC_lat', '')) for s in header_names[1:]]
-            header_PG_lats=PVF.Centric_to_Graphic(header_PC_lats)
-            for col in range(20,24):
+            header_PG_lats=Profile_Vertical_Fletcher.Centric_to_Graphic(header_PC_lats)
+            #for col in range(20,24):
+            for col in range(14,18):
                 axsscatter.plot(ytmp[:,col]*1e6,xtmp*1000,linewidth=1.0,
                                 label="MWR "+f"{header_PG_lats[col]:.1f}"+r"$^\circ$N")
 
             axsscatter.legend(fontsize=7,ncols=3,labelcolor='mfc')
-
-            print("COMPARE COMPARE COMPARE COMPARE COMPARE ")
-            print(np.array(fNH3avg),np.array(pressavg)*1000.)
-            #return
             
         #######################################################################
         # BEGIN: EXPERIMENTAL CODE TO OVERPLOT JUNO'S GROUND TRACK

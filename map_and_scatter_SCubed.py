@@ -108,16 +108,22 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
     ## Set up Compute Scatter Plot (PCloud vs fNH3)
     ###########################################################################
     fig3 = pl.figure(figsize=(8,4.5),dpi=150,facecolor="white")
+    #fig3 = pl.figure(figsize=(12,4.5),dpi=150,facecolor="white")
     fig3.suptitle(obskey+' '+ROI_ID)
 
     gs = fig3.add_gridspec(
         3, 2,
-        left=-0.05,
+        #4, 2,
+        #left=-0.05,
+        left=-0.0,
         right=0.98,
-        top=0.88,
+        #top=0.88,
+        top=0.78,
         bottom=0.10,
-        wspace=0.0,
-        hspace=0.4
+        #wspace=0.0,
+        wspace=0.2,
+        #hspace=0.4
+        hspace=0.6
     )
 
     # Left column ( 3 stacked maps)

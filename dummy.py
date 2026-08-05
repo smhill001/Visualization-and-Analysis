@@ -15,6 +15,6 @@ sys.path.append("/mnt/data/git_repos/Jupiter_NH3_Analysis_P3/HST/")
 sys.path.append("/mnt/data/git_repos/Jupiter_NH3_Analysis_P3/Winds/")
 import get_spice_ephem
 import convert_system3_to_I_II_spice
-import PlanetMapper_Test
-import SCubed2025
-    
+import PlanetMapper_Spice_Furnish
+import HST_Analysis_Script
+

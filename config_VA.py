@@ -24,5 +24,8 @@ config_VA={1:"/L3 FITS/",
 spice_path={'Astronomy2021':'C:/Astronomy/Python Play/spice_kernels/',
            'SHill-Compute-01':'/mnt/data/spice_kernels/'}
 
+Compare_data_path={'Astronomy2021':"C:/Astronomy/Projects/SAS 2021 Ammonia/Visualization-and-Analysis/",
+           'SHill-Compute-01':"/mnt/data/git_repos/Visualization-and-Analysis/"}
+
 #config=Host_path[hostname]+config_VA[1]
 #print(config_VA)
