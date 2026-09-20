@@ -5,10 +5,10 @@ Created on Wed Apr  9 12:57:12 2025
 @author: smhil
 """
 import numpy as np
-from skimage.feature import peak_local_max
 from astropy.time import Time
 from copy import deepcopy
 import csv
+from skimage.feature import peak_local_max
 
 
 def convert_time(row_inds, col_inds, mean_time_array):

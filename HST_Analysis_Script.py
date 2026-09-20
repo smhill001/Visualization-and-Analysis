@@ -15,7 +15,14 @@ def HST_Analysis_Script(obskeyHST,LonSys,HST=True,SCT=False,ROI=False,ROI_ID='',
 
     collection=Study_Maps[obskeyHST]['collection']
     plotoptions=Study_Maps[obskeyHST][LonSys]['plotoptions']
+    print(ROI_ID,LonSys)
+    print()
+    print(Study_Maps[obskeyHST][LonSys])
+    print()
+    
     if ROI_ID in Study_Maps[obskeyHST][LonSys]:
+        print("##################",ROI_ID)
+        
         ROI=Study_Maps[obskeyHST][LonSys][ROI_ID]['ROI']
         CoLatLims=Study_Maps[obskeyHST][LonSys][ROI_ID]['CoLatLims']
         LonRng=Study_Maps[obskeyHST][LonSys][ROI_ID]['LonRng']

@@ -1,13 +1,16 @@
-def surface_helper(fig3d,ax3d,LonSys,Lons,Lats,zmin,zmax,title):
+def surface_helper(fig3d,ax3d,LonSys,Lons,Lats,zmin,zmax,title,aspect=30):
     from matplotlib import cm, colors
     import pylab as pl
     import numpy as np
 
     ax3d.set_zlim(zmin,zmax)
     ax3d.invert_xaxis()
-    ax3d.set_box_aspect((np.ptp(Lons), np.ptp(Lats), 30))
+    ax3d.set_box_aspect((np.ptp(Lons), np.ptp(Lats), aspect))
+    #ax3d.view_init(30, -60, 0) 
     #ax3d.view_init(45, -60, 0) 
-    ax3d.view_init(30, -45, 0) 
+    ax3d.view_init(45, -45, 0) 
+    #ax3d.view_init(30, -45, 0) 
+    #ax3d.view_init(15, -15, 0) 
     ax3d.set_xlabel('Sys '+LonSys+' Longitude deg')
     ax3d.set_ylabel('PG Latitude (deg)')
     ax3d.set_title(title)
@@ -18,7 +21,8 @@ def surface_helper(fig3d,ax3d,LonSys,Lons,Lats,zmin,zmax,title):
     elif "on Ammonia Surface" in title:
         ax3d.set_zlabel('fNH3 (ppm)')
         
-    fig3d.subplots_adjust(left=0.05, bottom=0.03, right=0.98, top=0.95)     
+    #fig3d.subplots_adjust(left=0.05, bottom=0.03, right=0.98, top=0.95)     
+    fig3d.subplots_adjust(left=0.05, bottom=0.2, right=0.98, top=0.8)     
 
 
 def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
@@ -51,13 +55,25 @@ def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
         Lons = np.arange(360-LonLims[0],360-LonLims[1],-0.05)
         Lats = np.arange(90-LatLims[0],90-LatLims[1], -0.05)
         
-    zmin=1000.
-    zmax=2500.
+    zmin=0
+    zmax=3000
     print(Lats)
     X, Y = np.meshgrid(Lons, Lats)
-    Z = PCld_patch
-    W = fNH3_patch_mb
+    Zraw = PCld_patch
+    Wraw = fNH3_patch_mb
     Img=RGB4Display
+    
+    from scipy.ndimage import gaussian_filter
+    
+    # Smooth with a standard deviation (sigma) of 1 pixel
+    # Higher sigma values yield a heavier blur
+    if dataversion=='H':
+        Z=gaussian_filter(PCld_patch,sigma=5)
+        W=gaussian_filter(fNH3_patch_mb,sigma=5)
+    else:
+        Z=Zraw
+        W=Wraw
+
     
     fnskeleton='_Sys'+LonSys+'_N'+\
                 str(90-LatLims[0])+'-S'+str(LatLims[1]-90)+\
@@ -71,11 +87,15 @@ def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
 
     surfPCld = ax3dCld.plot_surface(X, Y, Z, cmap="Blues",linewidth=0, 
                                     antialiased=False,
-                                    vmin=1400,vmax=2200)
+                                    vmin=0,vmax=3000)
     title='Cloud Pressure Plotted on Pressure Surface'
     if HDRCld:
         title=title+'\n'+HDRCld['DATE-OBS']
-    surface_helper(fig3dCld,ax3dCld,LonSys,Lons,Lats,zmin,zmax,title)
+    if dataversion=='H':
+        aspect=10
+    else:
+        aspect=30
+    surface_helper(fig3dCld,ax3dCld,LonSys,Lons,Lats,zmin,zmax,title,aspect=aspect)
 
     cbarCld=fig3dCld.colorbar(surfPCld, shrink=0.35, aspect=15, label='Pressure (mb)',
                        pad=0.2)
@@ -86,9 +106,12 @@ def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
 
     ###########################################################################
     # Create fNH3 facecolors as 4th data set
-    norm = colors.Normalize(vmin=60, vmax=160)
+    if dataversion=='H':
+        norm = colors.Normalize(vmin=0, vmax=450)
+    else:
+        norm = colors.Normalize(vmin=60, vmax=160)
     cmap = cm.get_cmap('terrain_r') 
-    facecolors = cmap(norm(W))
+    facecolors = cmap(norm(Wraw))
 
     ###########################################################################
     # Plot fNH3 on Pressure surface
@@ -98,7 +121,7 @@ def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
     if HDRCld and HDRfNH3:
         title='fNH3 Plotted on Pressure Surface'
         title=title+'\nPressure:'+HDRCld['DATE-OBS']+' | fNH3: '+HDRfNH3['DATE-OBS']
-    surface_helper(fig3dboth,ax3dboth,LonSys,Lons,Lats,zmin,zmax,title)
+    surface_helper(fig3dboth,ax3dboth,LonSys,Lons,Lats,zmin,zmax,title,aspect=aspect)
     cbarboth=fig3dboth.colorbar(surfboth, shrink=0.35, aspect=15, label='fNH3 (ppm)',
                        pad=0.2)
     cbarboth.set_ticks(ticks=[0,0.25,0.5,0.75,1.0], labels=[160,135,110,85,60])
@@ -109,12 +132,12 @@ def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
 
     ###########################################################################
     # Plot Context Image (RGB) on Pressure surface
-    surf = ax3dRGBPCld.plot_surface(X, Y, Z, facecolors=Img,
+    surf = ax3dRGBPCld.plot_surface(X, Y, Z, facecolors=np.clip(Img,0.0,1.0),
                                     rstride=1, cstride=1, antialiased=False)
     title='Context Image Plotted on Pressure Surface'
     if HDRCld and timeRGB:
         title=title+'\nPressure:'+HDRCld['DATE-OBS']+' | RGB: '+timeRGB+'Z'
-    surface_helper(fig3dRGBPCld,ax3dRGBPCld,LonSys,Lons,Lats,zmin,zmax,title)
+    surface_helper(fig3dRGBPCld,ax3dRGBPCld,LonSys,Lons,Lats,zmin,zmax,title,aspect=aspect)
     cbarRGBPCld=fig3dCld.colorbar(surf, shrink=0.35, aspect=15, label='Pressure (mb)',
                        pad=0.2)
     cbarRGBPCld.ax.set_visible(False)
@@ -123,12 +146,12 @@ def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
 
     ###########################################################################
     # Plot Context Image on fNH3 surface
-    surf = ax3dRGBfNH3.plot_surface(X, Y, W, facecolors=Img, 
+    surf = ax3dRGBfNH3.plot_surface(X, Y, W, facecolors=np.clip(Img,0.0,1.0), 
                                     rstride=1, cstride=1, antialiased=False)
     title='Context Image Plotted on Ammonia Surface'
     if HDRfNH3 and timeRGB:
         title=title+'\nfNH3:'+HDRfNH3['DATE-OBS']+' | RGB: '+timeRGB+'Z'
-    surface_helper(fig3dRGBfNH3,ax3dRGBfNH3,LonSys,Lons,Lats,0,200,title)
+    surface_helper(fig3dRGBfNH3,ax3dRGBfNH3,LonSys,Lons,Lats,0,200,title,aspect=aspect)
     cbarRGBfNH3=fig3dCld.colorbar(surf, shrink=0.35, aspect=15, label='Pressure (mb)',
                        pad=0.2)
     cbarRGBfNH3.ax.set_visible(False)
@@ -138,11 +161,12 @@ def map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
     ###########################################################################
     # Plot the NH3 surface.
     surffNH3 = ax3dNH3.plot_surface(X, Y, W, cmap="terrain_r",
-                           linewidth=0, antialiased=False,vmin=60,vmax=160)        
+                           #linewidth=0, antialiased=False,vmin=60,vmax=160)        
+                           linewidth=0, antialiased=False,vmin=0,vmax=450)        
     title='fNH3 Plotted on Ammonia Surface'
     if HDRfNH3:
         title=title+'\n'+HDRfNH3['DATE-OBS']
-    surface_helper(fig3dNH3,ax3dNH3,LonSys,Lons,Lats,0,200,title)
+    surface_helper(fig3dNH3,ax3dNH3,LonSys,Lons,Lats,0,200,title,aspect=aspect)
     cbarNH3=fig3dboth.colorbar(surffNH3, shrink=0.35, aspect=15, label='fNH3 (ppm)',
                        pad=0.2)
     if HDRCld:

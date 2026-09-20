@@ -99,7 +99,7 @@ def plot_map_scatter(obskey,dateobs,patch1,patch2,Real_CM2,LatLims,axscor,PCldlo
         else:
             counter=counter+1
             ROI[key]=[BZind[key][1],BZind[key][0]]
-            ROIcolor='C'+str(counter)
+            ROIcolor='C'+str(counter-1)
             print(patch2.shape,patch1.shape)
             subpatch1=patch1[BZind[key][1]*scale:BZind[key][0]*scale,:]
             subpatch2=patch2[BZind[key][1]*scale:BZind[key][0]*scale,:]*fNH3factor

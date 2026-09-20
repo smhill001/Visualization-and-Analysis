@@ -32,7 +32,7 @@ def ApplyContours(axs1,RGBaxs,fNH3_patch_mb,tx_fNH3,PCld_patch_mb,tx_PCld,
         temp=PC.plot_contours_on_patch(axs1[CH4889axs],PCld_patch_mb,LatLims,[360-LonLims[1],360-LonLims[0]],
                                         tx_PCld[:5], frmt='%3.0f', clr='r')
 
-def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
+def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,pathmapplots,
                    LonSys,dataversion=2,boxcorrdegrees=5):
 
     import sys
@@ -59,13 +59,13 @@ def RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,
             lon_array=np.arange(LonLims[1],LonLims[0],-0.05)#+200
             PCldminmax=[1000,3000]
             fNH3minmax=[0,300]
-            fnout=path+collection+" HST Wave.png"
+            fnout=pathmapplots+collection+" HST Wave.png"
             hw_box = boxcorrdegrees*10 # 5deg = 50 pixel hw_box (2.5 deg then 2x)
         else:
             lon_array=np.arange(LonLims[1],LonLims[0],-1)
             PCldminmax=[1400,2400]
             fNH3minmax=[50,200]
-            fnout=path+collection+" SCT Wave.png"
+            fnout=pathmapplots+collection+" SCT Wave.png"
             hw_box = boxcorrdegrees
 
 
@@ -629,15 +629,28 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
     import map_and_context as mac
     import map_and_scatter as mas
     import read_fits_V2 as RF2
+    import socket
 
     import sys
+    import os
     sys.path.append('../Profiles/code')
     sys.path.append('../Profiles/code')
     sys.path.append('C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Profiles/code')
-    import plot_profile_scatter as pps
+    #import plot_profile_scatter as pps
+    hostname = socket.gethostname()
+    from config_VA import Host_path, Profile_code
+    import plot_roi_scatter as prs
+
+    import sys
+    sys.path.append("/mnt/data/git_repos/Jupiter_NH3_Analysis_P3/Profiles/code/")
+
 
     latstr,lonstr=MLLS.make_lat_lon_str(LatLims,LonLims)
-    path="C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/"+proj+"/"
+    #path="C:/Astronomy/Projects/SAS 2021 Ammonia/Jupiter_NH3_Analysis_P3/Studies/"+proj+"/"
+    pathmapplots=Host_path[hostname]+'/L4 Plots/'+proj+'/'
+    if not os.path.exists(pathmapplots):
+        os.makedirs(pathmapplots)
+
 
     if IRTFcollection and CH4889collection:
     #if IRTFcollection and CH4889plot:
@@ -712,7 +725,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
                                                            LonRng,PlotCM,
                                                            amfdata,coef[0],fNH3low,fNH3high,
                                                            showbands,FiveMicron,figxy,
-                                                           ctbls[0],path,Level='L3',cont=cont,
+                                                           ctbls[0],pathmapplots,Level='L3',cont=cont,
                                                            suptitle="Ammonia Mole Fraction",
                                                            cbar_title="Ammonia Mole Fraction (ppm)",
                                                            ROI=ROI,smoothcont=smoothcont)
@@ -728,7 +741,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
                                                             LonRng,PlotCM,
                                                             amfdata,coef[1],PCldlow,PCldhigh,
                                                             showbands,FiveMicron,figxy,
-                                                            ctbls[1],path,Level='L3',cont=cont,
+                                                            ctbls[1],pathmapplots,Level='L3',cont=cont,
                                                             suptitle="Cloud Top Pressure",
                                                             cbar_rev=True,
                                                             cbar_title="Cloud Top Pressure (mb)",
@@ -739,7 +752,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
                 mas.map_and_scatter(fNH3_patch_mb,PCld_patch,blendweightPCloud,blendweightfNH3time,LonSys,
                 LatLims,LonLims,LonRng,PlotCM,fnNH3,
                 amfdata,coef[0],tx_fNH3,fNH3low,fNH3high,PCldlow,PCldhigh,
-                figxy,ctbls[1],path,"PCloud & fNH3 (contours)",
+                figxy,ctbls[1],pathmapplots,"PCloud & fNH3 (contours)",
                 "PCloud vs fNH3",Level='L3',cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
                 axis_inv=True,ROI=ROI,cont=cont,dataversion=dataversion)
 
@@ -808,7 +821,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         msurf.map_cloudsurface(PCld_patch_mb,fNH3_patch_mb,RGB4Display,
                                False,False,False,
                                LonSys,LatLims,[360-LonLims[1],360-LonLims[0]],
-                               180,180,path)
+                               180,180,pathmapplots)
 
     ###########################################################################
     # WRITE LOCAL MAX AND MINS TO FILE
@@ -826,7 +839,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
             "RGB":RGB_patch[:,:,0]
         }, blendweightTime_patch, LatLims, LonLims)
 
-        output_filename=path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" extrema.csv"
+        output_filename=pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" extrema.csv"
         FX.export_extrema_to_csv(results_extrema, output_filename)
         FX.extrema_overplot_all(results_extrema,axes = {'axNH3': axs1[0], 
                                                         'axCH4': axs1[1], 
@@ -859,11 +872,11 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
                             threshold_abs=NEDFthresh, mode='max')
         
         FB.export_regions_to_csv(props_fNH3, NH3thresh, 
-                                 path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NH3thresh)+" fNH3.csv")
+                                 pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NH3thresh)+" fNH3.csv")
         FB.export_regions_to_csv(props_Plum, Cloudthresh, 
-                                 path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(Cloudthresh)+" Plum.csv")
+                                 pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(Cloudthresh)+" Plum.csv")
         FB.export_regions_to_csv(props_NEDF, NEDFthresh, 
-                                 path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NEDFthresh)+" NEDF.csv")
+                                 pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" blobs "+str(NEDFthresh)+" NEDF.csv")
         print("$$$$$$$$$$$$$$$$$$$$$$$$$",LatLims,LonLims)
 
         FB.plot_regions_on_axis(axs1[2], labeled_fNH3, props_fNH3,
@@ -879,20 +892,20 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
                                 plot_contours=False, plot_masks=True,
                                 plot_labels=False, contour_color='black')
 
-    fig1.savefig(path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" map.png",dpi=300)
+    fig1.savefig(pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" map.png",dpi=300)
     if variance:
-        fig2.savefig(path+collection+" Stdv Sys"+LonSys+" "+lonstr+" "+latstr+" map.png",dpi=300)
+        fig2.savefig(pathmapplots+collection+" Stdv Sys"+LonSys+" "+lonstr+" "+latstr+" map.png",dpi=300)
     #End of main map plots
     ###########################################################################
     ###########################################################################
     # WRITE BARE MAPS FOR ANIMATIONS ETC
     ###########################################################################
     if bare_maps:
-        temp=make_bare_map(blendweightfNH3,ctbls[0],fNH3low,fNH3high,path,collection,LonSys,"fNH3")
-        temp=make_bare_map(blendweightPCloud,ctbls[1],PCldlow,PCldhigh,path,collection,LonSys,"PCld")
-        temp=make_bare_map(RGB4Display,ctbls[0],PCldlow,PCldhigh,path,collection,LonSys,"RGB")
+        temp=make_bare_map(blendweightfNH3,ctbls[0],fNH3low,fNH3high,pathmapplots,collection,LonSys,"fNH3")
+        temp=make_bare_map(blendweightPCloud,ctbls[1],PCldlow,PCldhigh,pathmapplots,collection,LonSys,"PCld")
+        temp=make_bare_map(RGB4Display,ctbls[0],PCldlow,PCldhigh,pathmapplots,collection,LonSys,"RGB")
         if IRTFcollection:
-            temp=make_bare_map(np.log10(blendweightIRTF),'gist_heat',1.0,3.0,path,collection,LonSys,"IRTF")       
+            temp=make_bare_map(np.log10(blendweightIRTF),'gist_heat',1.0,3.0,pathmapplots,collection,LonSys,"IRTF")       
 
     ###########################################################################
     # Meridional Profiles
@@ -1013,7 +1026,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         
         figmp.subplots_adjust(bottom=0.07,top=0.92,left=0.10,right=0.92)
         
-        figmp.savefig(path+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" Meridional Profile.png",dpi=300)
+        figmp.savefig(pathmapplots+collection+" Mean Sys"+LonSys+" "+lonstr+" "+latstr+" Meridional Profile.png",dpi=300)
     
     
         print("###############",means[0].shape)
@@ -1319,7 +1332,7 @@ def L4_Jup_Map_Plot_V2(collection="20240129-20240202",IRTFcollection='20240205-2
         print("#######360-NH3LonLims=",360-np.array(LonLims))
         print("###################################################################")
 
-        RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,path,LonSys)
+        RossbyWavePlot(collection,LonLims,fNH3_patch_mb,PCld_patch_mb,figsz,pathmapplots,LonSys)
     
     if segment:
         return(LatLims,blendweightPCloud,blendweightfNH3,blendRGBweight,

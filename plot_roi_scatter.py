@@ -3,55 +3,6 @@ from scipy import stats
 from matplotlib.patches import Ellipse
 import matplotlib.lines as mlines
 
-def GMM_overplot(axscor,obskey,ROI_ID,xaxistitle,dataversion='H',fNH3factor=1.0,total_clusters=6):
-    import json
-    from matplotlib.colors import ListedColormap 
-
-    # Using a context manager ensures the file closes automatically
-    #GMM_file='C:/Astronomy/Projects/SAS 2021 Ammonia/Visualization-and-Analysis/mahalanobis_clusters_with_covariances.json'
-    GMM_file='C:/Astronomy/Projects/SAS 2021 Ammonia/Visualization-and-Analysis/new_mahalanobis_clusters.json'
-    with open(GMM_file, "r", encoding="utf-8") as f:
-        GMM_Mahalanobis = json.load(f)
-    colors =[(1, 0.639, 0.639), (0.647, 1, 0.639), (0.639, 0.894, 1), 
-             (1, 0.996, 0.639), (1, 0.82, 0.639), (1, 0.639, 0.839), 
-             (0.937, 0.639, 1), (0.678, 0.678, 0.678)]
-    cmap = ListedColormap(colors[:9])
-
-    darker_colors = list(map(lambda c: (c[0] - 0.2, c[1] - 0.2, c[2] - 0.2), cmap.colors))
-
-
-    if 'Ammonia' in xaxistitle:
-        plottype='NH3_PCld'
-        param1,param2='PCld','NH3'
-    elif 'Color' in xaxistitle:
-        plottype='AOI_CI'
-        param1,param2='AOI','CI'
-    else:
-        plottype=False
-    if plottype and dataversion=='H':
-        print("##############################")
-        print("obskey+'-'+ROI_ID obskey+'-'+ROI_ID obskey+'-'+ROI_ID")
-        print(obskey+'-'+ROI_ID in GMM_Mahalanobis)
-        if obskey+'-'+ROI_ID in GMM_Mahalanobis:
-            subdict=GMM_Mahalanobis[obskey+'-'+ROI_ID][plottype][str(total_clusters)]
-            for cluster_number in range(0,int(total_clusters)):
-                mean1=float(subdict[param1][str(cluster_number+1)]['mean'])
-                mean2=float(subdict[param2][str(cluster_number+1)]['mean'])*fNH3factor
-                print("GMM Data*************************************************")
-                print(mean1,mean2)
-                Test_Mahal_GMM_covariance=np.array(json.loads(subdict['covariances']))[cluster_number,:,:]
-                print(Test_Mahal_GMM_covariance)
-                print("*********************************************************")
-                if plottype=='NH3_PCld':
-                    plot_Mahal_ellipse(np.flip(Test_Mahal_GMM_covariance),mean1,mean2,
-                    #                   axscor,'C'+str(cluster_number),alpha=0.8)
-                                       axscor,darker_colors[cluster_number],alpha=0.8)
-                elif plottype=='AOI_CI':
-                    plot_Mahal_ellipse(Test_Mahal_GMM_covariance,mean1,mean2,
-                    #                   axscor,'C'+str(cluster_number),alpha=0.8)
-                                       axscor,darker_colors[cluster_number],alpha=0.8)
-                #axscor.scatter([],[],label='GMM '+str(cluster_number+1))
-                axscor.scatter([],[],label='GMM '+str(cluster_number+1),c=darker_colors[cluster_number])
 
 
 def pooled_covariance_ROIs(ROIout, obskey):
@@ -171,21 +122,37 @@ def plot_Mahal_ellipse(cov_matrixi,mean_patch1,mean_patch2,axscor,clr,alpha=0.8)
     eigenvectorsi = eigenvectorsi[:, order]
     # Calculate dimensions and rotation angle
     # Dimensions represent 1 standard deviation along the principal axes
+    """
     widthi = 2 * np.sqrt(eigenvaluesi[1])
     heighti = 2 * np.sqrt(eigenvaluesi[0])
     # Angle of rotation in degrees (from the first eigenvector)
     anglei = np.degrees(np.arctan2(eigenvectorsi[1, 0], -eigenvectorsi[0, 0]))
-
+    """
+    # 2. Correct 2D 95% scale factor (~2.4477)
+    from scipy.stats import chi2
+    scale_factor = np.sqrt(chi2.ppf(0.95, df=2))
+    
+    # 3. Assign Major Axis to Width, Minor Axis to Height
+    widthi  = 2 * np.sqrt(eigenvaluesi[0]) * scale_factor  # Major axis
+    heighti = 2 * np.sqrt(eigenvaluesi[1]) * scale_factor  # Minor axis
+    
+    # 4. Correct arctan2(y, x) vector alignment
+    # Row 0 = patch1 (Y-axis), Row 1 = patch2 (X-axis)
+    y_component = eigenvectorsi[0, 0]
+    x_component = eigenvectorsi[1, 0]
+    anglei = np.degrees(np.arctan2(y_component, x_component))
     ellipse=Ellipse(
         xy=(mean_patch2, mean_patch1),
-        width=widthi * 1.96,
-        height=heighti * 1.96,
+        #width=widthi * 1.96,
+        #height=heighti * 1.96,
+        width=widthi,
+        height=heighti,
         angle=anglei,
         edgecolor=clr,
         alpha=alpha,
         facecolor="none",
-        linestyle="--",
-        linewidth=1.5)#,
+        linestyle="solid",
+        linewidth=1.0)#,
         #label="95% Confidence")
     axscor.add_patch(ellipse)
     ## 2. Create a clean Line2D proxy matching your ellipse styling
@@ -201,19 +168,53 @@ def statistics_helper(ROIout,obskey,R,patch1,patch2,clr,axscor,alpha=1.0,plot_el
     ROIout[obskey]['roilabel'].append(R)
     ROIout[obskey]['nsamples'].append(patch1.size)
     
-    slopei, intercepti, r_valuei, p_valuei, std_erri = stats.linregress(patch1.ravel(), patch2.ravel())
-    ROIout[obskey]['slope'].append(slopei)
-    ROIout[obskey]['intercept'].append(intercepti)
+    #slopeiold, interceptiold, r_valueiold, p_valueiold, std_erriold = stats.linregress(patch1.ravel(), patch2.ravel())
+    #print("###############")
+    #print("slopeiold, interceptiold, r_valueiold, p_valueiold, std_erriold=",slopeiold, interceptiold, r_valueiold, p_valueiold, std_erriold)
+    cov_matrixi = np.cov([patch1.ravel(), patch2.ravel()],rowvar=True)
+    
+    # 2. New code from Gemini for slope, intercept etc. from covariance matrix
+    var_x, var_y = cov_matrixi[0, 0], cov_matrixi[1, 1]
+    cov_xy = cov_matrixi[0, 1]
+    # 3. Major Axis Slope & Intercept (Aligns with ellipse long axis)
+    slopei = ((var_y - var_x) + np.sqrt((var_y - var_x)**2 + 4 * cov_xy**2)) / (2 * cov_xy)
+    intercepti = mean_patch2 - slopei * mean_patch1
+    
+    # 4. Correlation r and p-value
+    r_valuei = cov_xy / np.sqrt(var_x * var_y)
+    t_stat = r_valuei * np.sqrt(patch1.size - 2) / np.sqrt(1 - r_valuei**2)
+    p_valuei = 2 * (1 - stats.t.cdf(np.abs(t_stat), df=patch1.size - 2))
+    
+    # 5. Standard error of slope via eigenvalues
+    evals, evecs = np.linalg.eigh(cov_matrixi)
+    l1, l2 = evals[1], evals[0]  # l1 is largest eigenvalue
+    std_erri = (1 + slopei**2) * np.sqrt((l1 * l2) / (patch1.size * (l1 - l2)**2))
+    print("slopei, intercepti, r_valuei, p_valuei, std_erri=",slopei, intercepti, r_valuei, p_valuei, std_erri)
+    print("###############")
+    # 3. Sort descending to get major axis
+    #v_major = evecs[:, np.argmax(evals)]  # [fNH3_comp, PCld_comp]
+    
+    # 4. Physical slope = delta(Y) / delta(X) = delta(fNH3) / delta(PCld)
+    #slope_physical = v_major[0] / v_major[1]  # Returns ppm / mb
+    #print(slope_physical)
+    #slope_sma = np.sign(cov_matrixi[0, 1]) * np.sqrt(cov_matrixi[0, 0] / cov_matrixi[1, 1])
+    #print(slope_sma)
+    slope_ols_ppm_mb = cov_xy / var_y
+    intercept_ols_ppm = mean_patch1 - (slope_ols_ppm_mb * mean_patch2)
+    print(slope_ols_ppm_mb,intercept_ols_ppm)
+    df = patch1.size - 2
+    std_err_ppm_mb = abs(slope_ols_ppm_mb) * np.sqrt((1 - r_valuei**2) / (df * r_valuei**2))
+    ROIout[obskey]['slope'].append(slope_ols_ppm_mb)
+    ROIout[obskey]['intercept'].append(intercept_ols_ppm)
     ROIout[obskey]['r_value'].append(r_valuei)
     ROIout[obskey]['p_value'].append(p_valuei)
-    ROIout[obskey]['std_err'].append(std_erri)
-
-    cov_matrixi = np.cov([patch1.ravel(), patch2.ravel()],rowvar=True)
+    ROIout[obskey]['std_err'].append(std_err_ppm_mb)
     ROIout[obskey]['cov_matrix'].append(cov_matrixi)
+    
     #print("cov_matrixi",cov_matrixi)
     if plot_ellipse:
         plot_Mahal_ellipse(cov_matrixi,mean_patch1,mean_patch2,axscor,clr,alpha=0.8)
-    
+    #return
     return ROIout
 
 
@@ -268,8 +269,9 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
     print("END END END END END END END END")
 
     ###########################################################################
-    # LOOP OVER ROIS AND PLOT SCATTER IN APPROPRIATE COLOR
+    # Initial setup and statistics on whole population
     ###########################################################################
+
     if dataversion=="H":
         scale=20
     else:
@@ -285,12 +287,20 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
 
     ROIout=statistics_helper(ROIout,obskey,'All',patch1,patch2*fNH3factor,
                              'grey',axscor,alpha=0.2,plot_ellipse=plot_ellipse)
-    #print(np.array(ROIout[obskey]['cov_matrix'])[0,:,:])
-    #plot_Mahal_ellipse(np.array(ROIout[obskey]['cov_matrix'])[0,:,:],
-    #                   ROIout[obskey]['mean1'],
-    #                   ROIout[obskey]['mean2'],axscor,'grey',alpha=0.8)
+    
+    ftemp=np.linspace(0, 450,num=50)
+    ptemp=np.array(ROIout[obskey]['intercept'])+np.array(ROIout[obskey]['slope'])*np.array(ftemp)
+    print("ROIout[obskey]['intercept'],ROIout[obskey]['slope']=",ROIout[obskey]['intercept'],ROIout[obskey]['slope'])
+    print("ptemp.max,ftemp.max=",ptemp.max(),ftemp.max())
+    
+    #axscor.plot(ftemp,ptemp,'C0')
+    
+    
+    #return
 
-    #counter=1
+    ###########################################################################
+    # LOOP OVER ROIS AND PLOT SCATTER IN APPROPRIATE COLOR
+    ###########################################################################
     for R in ROI:
         RLatLims=-LatLims[0]+np.array([ROI[R][0],ROI[R][1]])
         RCM=ROI[R][2]
@@ -325,10 +335,6 @@ def plot_roi_scatter(obskey,dateobs,ROI_ID,patch1,patch2,Real_CM2,LatLims,LonLim
                      'pairwise':Mahal_pairwise,
                      'pairwise_roi':Mahal_pairwise_roi}   
     
-    if 3<GMM_clusters<7:
-        GMM_overplot(axscor,obskey,ROI_ID,xaxistitle,dataversion='H',
-                     fNH3factor=fNH3factor,total_clusters=GMM_clusters)
-
     axscor.grid(linewidth=0.2)
     axscor.set_ylim(PCldlow,PCldhigh)
     axscor.set_xlim(fNH3low,fNH3high)

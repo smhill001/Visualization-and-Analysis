@@ -7,11 +7,239 @@ import make_L2_L3_map_png_filenames as mfn
 import csv
 hostname = socket.gethostname()
 from config_VA import Host_path, Profile_code
+import plot_roi_scatter as prs
 
 import sys
 sys.path.append("/mnt/data/git_repos/Jupiter_NH3_Analysis_P3/Profiles/code/")
 import Profile_Vertical_Fletcher
 
+import urllib.request, urllib.error, urllib.parse
+
+class readurllines:
+    """
+    Base class to read text filtes from a website
+    """
+    def __init__(self,URLtoRead):
+        #print(URLtoRead)
+        response = urllib.request.urlopen(URLtoRead)
+        temp=response.read()
+        self.URLLines=temp.splitlines()
+        self.nrecords=len(self.URLLines)
+        self.URLtoRead=URLtoRead
+        print("Read "+str(self.nrecords)+" URL records")
+
+class Galileo_Lower_Profile(readurllines):
+    """
+    Read observing conditions from the Suomi-net web site
+    """
+    pass
+    def load_records(self):
+        self.Time=[]  #Keyword for star identification
+        self.Press=[]           #Target, e.g., component of a multiple star
+        self.Temp=[]           #Target, e.g., component of a multiple star
+        self.Dens=[]
+        self.Alt=[]
+        self.Grav=[]
+        for recordindex in range(0,self.nrecords-1):
+            self.Time.append(str(self.URLLines[recordindex][13:20]))
+            self.Press.append(float(self.URLLines[recordindex][12:18]))
+            self.Temp.append(float(self.URLLines[recordindex][24:34]))
+            self.Dens.append(str(self.URLLines[recordindex][62:66]))                
+            self.Alt.append(str(self.URLLines[recordindex][67:72]))                
+            self.Grav.append(float(self.URLLines[recordindex][60:66]))                
+
+class Galileo_Upper_Profile(readurllines):
+    """
+    Read observing conditions from the Suomi-net web site
+    """
+    pass
+    def load_records(self):
+        self.Time=[]  #Keyword for star identification
+        self.Alt=[]           #Target, e.g., component of a multiple star
+        self.Press=[]           #Target, e.g., component of a multiple star
+        self.Temp=[]           #Target, e.g., component of a multiple star
+        self.Dens=[]
+        self.MolWt=[]
+        self.Grav=[]
+        for recordindex in range(0,self.nrecords-1):
+            self.Time.append(str(self.URLLines[recordindex][1:9]))
+            self.Alt.append(str(self.URLLines[recordindex][12:20]))                
+            self.Press.append(float(self.URLLines[recordindex][21:33]))
+            self.Temp.append(float(self.URLLines[recordindex][32:42]))
+            self.Dens.append(str(self.URLLines[recordindex][45:55]))                
+            #self.Grav.append(float(self.URLLines[recordindex][60:66]))    
+            
+def GMM_overplot(axscor,obskey,ROI_ID,xaxistitle,dataversion='H',fNH3factor=1.0,total_clusters=6):
+    import json
+    from matplotlib.colors import ListedColormap 
+
+    from config_VA import Compare_data_path
+    import socket
+    hostname = socket.gethostname()
+    # Load data with headers
+    path=Compare_data_path[hostname]
+    #fn="new_mahalanobis_clusters.json"
+    fn="new_mahalanobis_clusters 20260827.json"
+
+    # Using a context manager ensures the file closes automatically
+    #GMM_file='C:/Astronomy/Projects/SAS 2021 Ammonia/Visualization-and-Analysis/mahalanobis_clusters_with_covariances.json'
+    #GMM_file='C:/Astronomy/Projects/SAS 2021 Ammonia/Visualization-and-Analysis/new_mahalanobis_clusters.json'
+    GMM_file=path+fn
+    with open(GMM_file, "r", encoding="utf-8") as f:
+        GMM_Mahalanobis = json.load(f)
+    colors =[(1, 0.639, 0.639), (0.647, 1, 0.639), (0.639, 0.894, 1), 
+             (1, 0.996, 0.639), (1, 0.82, 0.639), (1, 0.639, 0.839), 
+             (0.937, 0.639, 1), (0.678, 0.678, 0.678)]
+    cmap = ListedColormap(colors[:9])
+
+    darker_colors = list(map(lambda c: (c[0] - 0.2, c[1] - 0.2, c[2] - 0.2), cmap.colors))
+
+
+    if 'Ammonia' in xaxistitle:
+        plottype='NH3_PCld'
+        param1,param2='PCld','NH3'
+    elif 'Color' in xaxistitle:
+        plottype='AOI_CI'
+        param1,param2='AOI','CI'
+    else:
+        plottype=False
+    if plottype and dataversion=='H':
+        print("##############################")
+        print("obskey+'-'+ROI_ID obskey+'-'+ROI_ID obskey+'-'+ROI_ID")
+        print(obskey+'-'+ROI_ID in GMM_Mahalanobis)
+        if obskey+'-'+ROI_ID in GMM_Mahalanobis:
+            if plottype in GMM_Mahalanobis[obskey+'-'+ROI_ID]:
+                subdict=GMM_Mahalanobis[obskey+'-'+ROI_ID][plottype][str(total_clusters)]
+                for cluster_number in range(0,int(total_clusters)):
+                    mean1=float(subdict[param1][str(cluster_number+1)]['mean'])
+                    mean2=float(subdict[param2][str(cluster_number+1)]['mean'])*fNH3factor
+                    print("GMM Data*************************************************")
+                    print(mean1,mean2)
+                    Test_Mahal_GMM_covariance=np.array(json.loads(subdict['covariances']))[cluster_number,:,:]
+                    print(Test_Mahal_GMM_covariance)
+                    print("*********************************************************")
+                    if plottype=='NH3_PCld':
+                        prs.plot_Mahal_ellipse(np.flip(Test_Mahal_GMM_covariance),mean1,mean2,
+                        #                   axscor,'C'+str(cluster_number),alpha=0.8)
+                                           axscor,darker_colors[cluster_number],alpha=0.8)
+                    elif plottype=='AOI_CI':
+                        prs.plot_Mahal_ellipse(Test_Mahal_GMM_covariance,mean1,mean2,
+                        #                   axscor,'C'+str(cluster_number),alpha=0.8)
+                                           axscor,darker_colors[cluster_number],alpha=0.8)
+                    #axscor.scatter([],[],label='GMM '+str(cluster_number+1))
+                    axscor.scatter([],[],label='GMM '+str(cluster_number+1),c=darker_colors[cluster_number])
+
+def compare_scatter_overplot(compare,axsscatter,axsmaps):
+    #######################################################################
+    # COMPARISON DATA OVERPLOT
+    #######################################################################
+    if compare:
+        if 'MWR' in compare:
+            if len(compare['MWR'])==2:
+                low=compare['MWR'][0]
+                high=compare['MWR'][1]
+                header_names,xtmp,ytmp=Profile_Vertical_Fletcher.Juno_MWR()
+                header_PC_lats=[float(s.replace('PC_lat', '')) for s in header_names[1:]]
+                header_PG_lats=Profile_Vertical_Fletcher.Centric_to_Graphic(header_PC_lats)
+                indices = np.where((np.array(header_PG_lats) >= low) & (np.array(header_PG_lats) <= high))[0]
+                #for col in range(20,24):
+                #for col in range(14,18): #-3.8 to -12 pg lat
+                for col in indices:
+                    axsscatter.plot(ytmp[:,col]*1e6,xtmp*1000,linestyle='dashed',linewidth=1.0,
+                                    label="MWR "+f"{header_PG_lats[col]:.1f}"+r"$^\circ$N")
+                    x_limits = axsmaps[0].get_xlim()
+                    print(x_limits)
+                    for i in range(0,3):
+                        axsmaps[i].plot([x_limits[0],x_limits[1]],
+                                        [header_PG_lats[col],header_PG_lats[col]],
+                                        linestyle='dashed',linewidth=1.0)
+    
+        if 'GI2017' in compare:
+            if compare['GI2017']:
+                if 5 in compare['GI2017']:                        
+                    tmp=np.array(Profile_Vertical_Fletcher.Giles2017(dataset="4b"))
+                    axsscatter.plot(tmp[:,0]*1e6,tmp[:,1]*1000,linestyle='dashed',linewidth=1.0,
+                                    label=r"Giles++ 2017, 5$^\circ$N")
+                    axsscatter.fill_betweenx(tmp[:,1]*1000,tmp[:,2]*1e6,tmp[:,3]*1e6, alpha=0.1)
+                    x_limits = axsmaps[0].get_xlim()
+                    print(x_limits)
+                    for i in range(0,3):
+                        axsmaps[i].plot([x_limits[0],x_limits[1]],
+                                        [5,5],
+                                        linestyle='dashed',linewidth=1.0)
+                if 8 in compare['GI2017']:
+                    tmp=np.array(Profile_Vertical_Fletcher.Giles2017(dataset="4d"))
+                    axsscatter.plot(tmp[:,0]*1e6,tmp[:,1]*1000,linestyle='dashed',linewidth=1.0,
+                                    label=r"Giles++ 2017, 8$^\circ$N")
+                    axsscatter.fill_betweenx(tmp[:,1]*1000,tmp[:,2]*1e6,tmp[:,3]*1e6, alpha=0.1)
+                    x_limits = axsmaps[0].get_xlim()
+                    print(x_limits)
+                    for i in range(0,3):
+                        axsmaps[i].plot([x_limits[0],x_limits[1]],
+                                        [8,8],
+                                        linestyle='dashed',linewidth=1.0)
+                
+        if 'GA2024' in compare:
+            if compare['GA2024']:
+                URL="https://atmos.nmsu.edu/pdsd/archive/data/gp-j-asi-3-entry-v10/gp_0001/data/asi/loweratm.tab"
+                Lower_Atm=Galileo_Lower_Profile(URL)
+                Lower_Atm.load_records()
+                
+                URL="https://atmos.nmsu.edu/pdsd/archive/data/gp-j-asi-3-entry-v10/gp_0001/data/asi/upperatm.tab"
+                Upper_Atm=Galileo_Upper_Profile(URL)
+                Upper_Atm.load_records()
+    
+                T=np.array(Lower_Atm.Temp)
+                P=np.array(Lower_Atm.Press)
+                OT_2=-(3.31e4/T**2)+(1.742e6/T**3)-(2.995E7/T**4)
+                Psub=np.exp(15.96-(3537/T)+OT_2)
+                fNH3_sat=Psub/P
+                
+                axsscatter.plot(fNH3_sat*1e6,P*1000,linewidth=1.0,
+                                label=r"$NH_3$ sat. (Gapp++ 2024)")
+
+        if 'BJ2018' in compare:
+            if compare['BJ2018']:                        
+                #Bjoraker++ 2018 (deep values only, not saturation level above 700mb)
+                axsscatter.plot([200,200],[700,5000],linewidth=1.0,linestyle='solid',color='c',
+                                label="Bjoraker++ 2018")
+                axsscatter.fill_betweenx([700,5000],[150,150],[250,250],alpha=0.1,color='c')
+                
+        if 'FL2020' in compare:
+            if compare['FL2020']:                        
+                sys.path.append(Profile_code[hostname])
+                pressavg,fNH3avg,fNH3std=Profile_Vertical_Fletcher.Profile_Vertical_Fletcher(plot=False)
+                axsscatter.plot(np.array(fNH3avg),np.array(pressavg)*1000.,linestyle='solid',color='y',
+                                linewidth=1.0,label='Fletcher++ 2020')
+                axsscatter.fill_betweenx(pressavg*1000,fNH3avg-fNH3std,fNH3avg+fNH3std,alpha=0.1,color='y')
+                
+        if 'GA2024' in compare:
+            if compare['GA2024']:                        
+                tmp=np.array(Profile_Vertical_Fletcher.Gapp2024())
+                tmpfNH3= np.geomspace(tmp[0,0],tmp[1,0], 100)
+                tmpPCld=np.logspace(tmp[0,1],tmp[1,1])
+                log_y = np.interp(
+                    np.log10(tmpfNH3), 
+                    np.log10([tmp[0,0],tmp[1,0]]), 
+                    np.log10([tmp[0,1],tmp[1,1]])
+                )
+                tmpPCld = 10**log_y
+                tmpfNH3 = np.append(tmpfNH3, tmp[2,0])
+                tmpPCld = np.append(tmpPCld, tmp[2,1])
+    
+                axsscatter.plot((tmpfNH3*1e6),tmpPCld*1000,
+                                label=r"Gapp++ 2024")
+                
+        if 'FO2000' in compare:
+            if compare['FO2000']:                        
+                tmp=np.array(Profile_Vertical_Fletcher.Fouchet2000())
+                axsscatter.plot((tmp[:,0]*1e6)/0.865,tmp[:,1]*1000, #!!! Need to know if the mole fraction conversion is necessary
+                                label=r"Fouchet++ 2000")
+    
+
+    axsscatter.legend(fontsize=6,ncols=3,labelcolor='mfc')
+
+    return
 
 
 def write_Mahal_out(Mahalanobis_out,pathmapplots,fnout):
@@ -144,20 +372,20 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     import find_blob as FB
     ctbls=["terrain_r","Blues"]
 
-    #if  dataversion==1 or dataversion==2:
-    #    fNH3low=60
-    #    fNH3high=160
-    #    PCldlow=1600
-    #    PCldhigh=2200
-    #if dataversion=='H':
-    fNH3low=0
-    fNH3high=450
-    PCldlow=500
-    PCldhigh=3500
-    AOIlow=0.1
+    if  dataversion==1 or dataversion==2:
+        fNH3low=0
+        fNH3high=300
+        PCldlow=1600
+        PCldhigh=2200
+    if dataversion=='H':
+        fNH3low=0
+        fNH3high=450
+        PCldlow=500
+        PCldhigh=3500
+    AOIlow=0.0
     AOIhigh=0.4
     CIlow=0.35
-    CIhigh=0.75
+    CIhigh=0.80
     
     micronlow=0.5
     micronhigh=3.5
@@ -195,6 +423,12 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                         target=target,
                                                         LimbCorrection=LimbCorrection,
                                                         dataversion=dataversion)
+                from scipy.ndimage import gaussian_filter
+                
+                # Smooth with a standard deviation (sigma) of 1 pixel
+                # Higher sigma values yield a heavier blur
+                #fNH3data=gaussian_filter(fNH3data,sigma=3)
+                #PClddata=gaussian_filter(PClddata,sigma=3)
                 AOICM=AOIhdr['CM'+LonSys]
                 CICM=CIhdr['CM'+LonSys]
             fNH3CM=fNH3hdr['CM'+LonSys]
@@ -342,14 +576,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                             cbar_title="CI",
                                                             ROI=ROI,smoothcont=smoothcont,
                                                             dataversion=dataversion,noplot=False)
-
-    if "surface" in plotoptions:
-        print("#############",PCld_patch.shape,fNH3_patch_mb.shape)
-        msurf.map_cloudsurface(PCld_patch,fNH3_patch_mb,RGB4Display,
-                               PCldhdr,fNH3hdr,RGBtime,
-                               LonSys,CoLatLims,[360-NH3LonLims[1],360-NH3LonLims[0]],
-                               180,180,pathmapplots,dataversion=dataversion)
-        
+       
     if "wave" in plotoptions:
         L4M.RossbyWavePlot(obskey,NH3LonLims,fNH3_patch_mb,PCld_patch,[6,6],
                            pathmapplots,LonSys,dataversion=dataversion)
@@ -374,13 +601,14 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
     ## Compute Band or ROI Scatter Plot (PCloud vs fNH3)
     ###########################################################################
     if "scatter" in plotoptions:
+        maptitles=["Cloud Pressure (mb)",
+                   "Context Image (673/502/395nm)",
+                   "Ammonia Mole Fraction (ppm)"]
         ROIout,Mahalanobis_out,figscatter,axsscatter,axsmaps=masc.map_and_scatter_SCubed(obskey,ROI_ID,fNH3_patch_mb,PCld_patch,PClddata,RGB4Display,fNH3hdr['DATE-OBS'],LonSys,
             CoLatLims,NH3LonLims,LonRng,PCldPlotCM,
             amfdata,coef[0],tx_fNH3,tx_PCld,fNH3low,fNH3high,PCldlow,PCldhigh,
             figxy,ctbls,pathmapplots,"Blank","Ammonia Mole Fraction vs Cloud Pressure",
-            Level='L3',maptitles=["Cloud Pressure (mb)",
-                       "Context Image (673/502/395nm)",
-                       "Ammonia Mole Fraction (ppm)"],
+            Level='L3',maptitles=maptitles,
             cbar_rev=True,cbar_title="Cloud-top Pressure (mb)",
             axis_inv=True,ROI=ROI,cont=("contours" in plotoptions),
             smoothcont=smoothcont,dataversion=dataversion,fNH3factor=fNH3factor,
@@ -398,39 +626,16 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
         ROIS.flatten_json_agg_to_csv(ROIout, pathmapplots+fnout.replace('.png','_ROI.csv'))
         
         #######################################################################
-        # COMPARISON DATA OVERPLOT
+        # Overplot Gaussian Mixture Model (GMM) Mahalanobis ellipses
         #######################################################################
-        if compare:
-            """            
-            #Bjoraker++ 2018 (deep values only, not saturation level above 700mb)
-            axsscatter.plot([200,200],[700,5000],linewidth=1.0,
-                            label="Bjoraker++ 2018")
-            axsscatter.fill_betweenx([700,5000],[150,150],[250,250],alpha=0.1)
-            
-            sys.path.append(Profile_code[hostname])
-            pressavg,fNH3avg,fNH3std=PVF.Profile_Vertical_Fletcher(plot=False)
-            axsscatter.plot(np.array(fNH3avg),np.array(pressavg)*1000.,
-                            linewidth=1.0,label='Fletcher++ 2020')
-            axsscatter.fill_betweenx(pressavg*1000,fNH3avg-fNH3std,fNH3avg+fNH3std,alpha=0.1)
-            
-            tmp=np.array(PVF.Giles2017(dataset="4b"))
-            axsscatter.plot(tmp[:,0]*1e6,tmp[:,1]*1000,linewidth=1.0,
-                            label=r"Giles++ 2017, 5$^\circ$N")
-            axsscatter.fill_betweenx(tmp[:,1]*1000,tmp[:,2]*1e6,tmp[:,3]*1e6, alpha=0.1)
-            tmp=np.array(PVF.Giles2017(dataset="4d"))
-            axsscatter.plot(tmp[:,0]*1e6,tmp[:,1]*1000,linewidth=1.0,
-                            label=r"Giles++ 2017, 8$^\circ$N")
-            axsscatter.fill_betweenx(tmp[:,1]*1000,tmp[:,2]*1e6,tmp[:,3]*1e6, alpha=0.1)
-            """
-            header_names,xtmp,ytmp=Profile_Vertical_Fletcher.Juno_MWR()
-            header_PC_lats=[float(s.replace('PC_lat', '')) for s in header_names[1:]]
-            header_PG_lats=Profile_Vertical_Fletcher.Centric_to_Graphic(header_PC_lats)
-            #for col in range(20,24):
-            for col in range(14,18):
-                axsscatter.plot(ytmp[:,col]*1e6,xtmp*1000,linewidth=1.0,
-                                label="MWR "+f"{header_PG_lats[col]:.1f}"+r"$^\circ$N")
+        if 3<GMM_clusters<7:
+            GMM_overplot(axsscatter,obskey,ROI_ID,maptitles[2],dataversion='H',
+                         fNH3factor=fNH3factor,total_clusters=GMM_clusters)
 
-            axsscatter.legend(fontsize=7,ncols=3,labelcolor='mfc')
+        #######################################################################
+        # Overplot comparision data
+        #######################################################################
+        compare_scatter_overplot(compare,axsscatter,axsmaps)
             
         #######################################################################
         # BEGIN: EXPERIMENTAL CODE TO OVERPLOT JUNO'S GROUND TRACK
@@ -529,6 +734,13 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
             
         figscatter.savefig(pathmapplots+fnout.replace('.png','_scatter.png'),dpi=300)
         
+        if "surface" in plotoptions:
+            print("#############",PCld_patch.shape,fNH3_patch_mb.shape)
+            msurf.map_cloudsurface(PCld_patch,fNH3_patch_mb*fNH3factor,RGB4Display,
+                                   PCldhdr,fNH3hdr,RGBtime,
+                                   LonSys,CoLatLims,[360-NH3LonLims[1],360-NH3LonLims[0]],
+                                   180,180,pathmapplots,dataversion=dataversion)
+        
         #######################################################################
         # BEGIN: SPECIAL SCATTER/ROI HANDLING FOR HSI FOR AOI AND CI
         #######################################################################
@@ -577,7 +789,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                        "5x5 deg Box Correlation"],cbar_rev=False,cbar_title="Cloud-top Pressure (mb)",
             axis_inv=False,ROI=ROI,cont=("contours" in plotoptions),
             smoothcont=smoothcont,dataversion=dataversion,
-            fNH3factor=fNH3factor)
+            fNH3factor=1.0)
         fnout=mfn.make_L2_L3_map_png_filenames(obskey,fnNH3,'L3',LonSys,CoLatLims,LonLimsEast,
                                      coef=0.0,FiveMicron=False,
                                      dataversion=dataversion,param_name='Resid_vs_Correl')

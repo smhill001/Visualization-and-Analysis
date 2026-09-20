@@ -171,8 +171,8 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
                                      cbar_reverse=False,vn=xlow,vx=xhigh,n=6,
                                      cbar_title=cbar_title,cbarvis=False)
 
-    cbttl="Mean="+str(np.mean(patchx))[:3]+" $\pm$ "+str(np.std(patchx))[:2]
-    tp,vn,vx,tx,cbarx=PP.plot_patch(patchx,LatLims,LonLimsEast,
+    cbttl="Mean="+str(np.mean(patchx*fNH3factor))[:3]+" $\pm$ "+str(np.std(patchx*fNH3factor))[:2]
+    tp,vn,vx,tx,cbarx=PP.plot_patch(patchx*fNH3factor,LatLims,LonLimsEast,
                                      PlotCM,LonRng,ctbls[0],
                                      axs3[2],'%3.2f',
                                      cbar_reverse=False,vn=xlow,vx=xhigh,n=6,
@@ -198,10 +198,11 @@ def map_and_scatter_SCubed(obskey,ROI_ID,patchx,patchy,mapydata,RGBpatch,dateobs
     print("fNH3factor= ",fNH3factor)
     print("END END END END END END END END")
 
-    if dataversion==2:
-        axs1.scatter(patchx*fNH3factor,patchy,marker="o",s=3.0,color='grey',alpha=0.2,label='All')
-    elif dataversion=='H':
-        axs1.scatter(patchx*fNH3factor,patchy,marker=".",s=2,color='grey',linewidths=0,alpha=0.2,label='All')
+    if ROI:
+        if dataversion==2:
+            axs1.scatter(patchx*fNH3factor,patchy,marker="o",s=3.0,color='grey',alpha=0.2,label='All')
+        elif dataversion=='H':
+            axs1.scatter(patchx*fNH3factor,patchy,marker=".",s=2,color='grey',linewidths=0,alpha=0.2,label='All')
     
     #print(patchx.shape,patchy.shape)
     ###########################################################################
