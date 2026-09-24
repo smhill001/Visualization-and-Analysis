@@ -519,7 +519,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                        suptitle="Ammonia Mole Fraction",
                                                        cbar_title="Ammonia Mole Fraction (ppm)",
                                                        ROI=ROI,smoothcont=smoothcont,
-                                                       dataversion=dataversion,noplot=True)
+                                                       dataversion=dataversion,noplot=False)
     
 
     ###########################################################################
@@ -539,7 +539,7 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                                                         cbar_rev=True,
                                                         cbar_title="Cloud Top Pressure (mb)",
                                                         ROI=ROI,smoothcont=smoothcont,
-                                                        dataversion=dataversion,noplot=True)
+                                                        dataversion=dataversion,noplot=False)
 
     ###########################################################################
     ## Just RGB and Cloud Pressure
@@ -821,11 +821,11 @@ def L3_Jup_Map_Plot_V2(obskey="20251016UTa",target="Jupiter",
                         cbar_rev=False,swap_xy=False,
                         axis_inv=True,cbar_title="Log10(5um radiance)")
    
-    if ROI:
-        print("#############################")
-        print("ROIout[obskey].keys()=",ROIout[obskey].keys())
-        print("ROIout[obskey]['cov_matrix'][0]=",ROIout[obskey]['cov_matrix'][0])
-        print("ROIout[obskey]['nsamples']=",ROIout[obskey]['nsamples'])
+    #if ROI:
+        #print("#############################")
+        #print("ROIout[obskey].keys()=",ROIout[obskey].keys())
+        #print("ROIout[obskey]['cov_matrix'][0]=",ROIout[obskey]['cov_matrix'][0])
+        #print("ROIout[obskey]['nsamples']=",ROIout[obskey]['nsamples'])
     #if "scatter" in plotoptions:
     #    return(ROIout)
     #return(dateobs,roilabel,mean1,stdv1,mean2,stdv2,meanamf)
